@@ -28,7 +28,7 @@ import Testing
         ("f4", [.key(118), .key(177)]), ("f5", [.key(96), .key(176)]), ("f6", [.key(97), .key(178)]),
         ("f7", [.key(98), .media(20)]), ("f8", [.key(100), .media(16)]), ("f9", [.key(101), .media(19)]),
         ("f10", [.key(109), .media(7)]), ("f11", [.key(103), .media(1)]), ("f12", [.key(111), .media(0)]),
-    ])
+    ] as [(String, [KeyTrigger])])
     func knownKeys(name: String, triggers: [KeyTrigger]) {
         #expect(KeyNames.triggers(for: name) == triggers)
     }
