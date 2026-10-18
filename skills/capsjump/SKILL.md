@@ -49,7 +49,7 @@ Run `capsjump profiles --json`. Each profile has:
 - Keep everything else. Never remove or rebind a key the person didn't name.
 - If the key they want is taken, say what it does now, suggest a free one, and ask.
 - An app is its name as it appears in Applications (`iTerm`, `Slack`), or a path to the .app starting with `/` or `~/`.
-- A new site needs a `name`, the account fields from step 3, and `open`. Add `match` only when `open` is a deep page that should also find a tab elsewhere on the site (see Reference).
+- A new site needs a `name`, the account fields from step 3, and `open`. Without `match`, a key lands on any tab on `open`'s host. When `open` is a deep page (a repository's pull requests), add `match` with that page first and the host after it, as `github` does under Reference, so a tab already on that page wins.
 - Then run `capsjump tidy`. It rewrites the file in the layout CapsJump writes, as its Edit Config… window saves it, so the window never has to ask before saving over it. It drops comments. If the file has the person's own comments (anything outside the header that starts `# Written by CapsJump.`), ask before tidying. If they want to keep them, skip `tidy`; `check` will then carry a note about the layout, which is fine.
 
 ## 5. Check until the file is clean
