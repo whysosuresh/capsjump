@@ -4,7 +4,7 @@
 
 <h1 align="center">CapsJump</h1>
 
-<p align="center"><strong>Caps Lock finally has a job.</strong><br>Hold it and press a key to bring an app forward, land on a site in the right Chrome account, snap a window, or open a link.</p>
+<p align="center">Caps Lock finally has a job: one key to the right app, window or tab, in the Chrome profile you choose.</p>
 
 <p align="center">
   <a href="https://github.com/whysosuresh/capsjump/releases/latest"><img src="https://img.shields.io/github/v/release/whysosuresh/capsjump" alt="Latest release"></a>
@@ -14,25 +14,51 @@
 
 <p align="center"><a href="https://capsjump.com/">capsjump.com</a></p>
 
-Caps Lock has spent decades waiting for someone to SHOUT. CapsJump gives it a real job. Hold Caps Lock and press S: your terminal is just there. Caps Lock and G: the GitHub tab in your work Chrome account comes forward (not your personal one, never your personal one), or opens there if it isn't open yet. Caps Lock and ←: the front window takes the left half of the screen. Caps Lock and W: a Slack channel opens. One small file, `~/.capsjump.yaml`, says which key does what.
+Caps Lock has spent decades waiting for someone to SHOUT. CapsJump gives it a real job. Give GitHub a key in your work Chrome profile: hold Caps Lock and press G, and CapsJump brings a matching tab forward when it can find one. If no tab matches, it opens the page in that profile. It also brings apps forward, snaps windows and opens links. One small file, `~/.capsjump.yaml`, says which key does what; G is an example you configure below.
 
 ## Install
+
+### Download
+
+[Download for Mac](https://github.com/whysosuresh/capsjump/releases/latest). Opens the latest GitHub release. Download the CapsJump ZIP under Assets.
+
+Unzip it, move **CapsJump.app** to Applications, and open it.
+
+### Homebrew
 
 ```sh
 brew install --cask whysosuresh/tap/capsjump
 open -a CapsJump
 ```
 
-CapsJump opens a short Welcome window, three steps that tick themselves as you go:
+Open source. CapsJump has no analytics. Quit CapsJump and Caps Lock works normally again.
+
+Accessibility lets CapsJump handle your shortcuts and move windows. Chrome access lets it find and switch tabs. Configuration and saved icons are read locally; websites and apps you open make their own connections.
+
+### Set up your keys
+
+Both routes open the same Welcome window, with three steps that tick themselves as you go:
 
 1. **Let CapsJump hear Caps Lock.** macOS asks with its own box: click Open System Settings there and turn CapsJump on (or use the step's own button if you closed the box). The step ticks the moment you do, and upgrades keep the permission.
 2. **Choose your keys.** One click turns on the starter keys (Caps Lock with the arrows snaps the front window to a half, with F it fills the screen), or set up your own. Nothing takes Caps Lock before this, and the step says so plainly: while CapsJump has keys, Caps Lock no longer types capitals (Shift still does).
 3. **Try it.** Click any window, hold Caps Lock and press ←.
 
-Below them, if you like: access to Chrome (for sites in the right account) and notifications (so a key that can't do its job says why), each asked only when you click it, and a switch for starting at login, on until you turn it off. Close the window whenever you like; until CapsJump is set up, its menu-bar mark carries a small dot and its menu starts with **Finish Setting Up…**, and opening CapsJump again brings the window back.
+Notifications and Start at login have their own controls in the Welcome window. Close it whenever you like; until CapsJump is set up, its menu-bar mark carries a small dot and its menu starts with **Finish Setting Up…**. Opening CapsJump again brings the window back.
 
-- Homebrew loads a cask from outside its own taps only once you trust it; naming the cask in full, as above, trusts this one cask and nothing else.
-- From a terminal instead: `capsjump setup` opens the same Welcome window, `capsjump init` writes the starter `~/.capsjump.yaml` (the window keys, and an example site in your first Chrome account), `capsjump profiles` lists Chrome's accounts and `capsjump check` checks the file.
+### Give GitHub a key
+
+G is an example you configure; the starter keys move windows.
+
+1. In the Welcome window, choose **Allow…** under **Chrome accounts**. If access was previously denied, choose **Open Automation Settings** instead.
+2. Open GitHub in the Chrome profile you want, then choose **Add Current Tab…** from CapsJump's menu.
+3. When the **Account** field is shown, confirm the intended profile; select it if it says **Choose…**. Assign G or another available key, then choose **Add** or **Add Key**.
+4. Hold Caps Lock and press the key you assigned.
+
+CapsJump chooses the Chrome profile, not the account signed in on a website. See [What a jump does](#what-a-jump-does) for tab-reuse limits.
+
+Homebrew also makes `capsjump` available on PATH. With ZIP installation, use the app's menus, or run the bundled CLI at `/Applications/CapsJump.app/Contents/Helpers/capsjump`. `capsjump setup` opens the Welcome window, `capsjump init` writes the starter configuration, `capsjump profiles` lists Chrome profiles and `capsjump check` checks the file.
+
+Homebrew loads a cask from outside its own taps only once you trust it; naming the cask in full, as above, trusts this one cask and nothing else.
 
 ## Configure
 
@@ -152,13 +178,13 @@ If a permission is missing, the jump fails with a notification. It never opens a
 
 ## Permissions
 
-CapsJump asks for three, all at once, with `capsjump setup`, or by itself the first time a jump finds one missing:
+The Welcome window explains each permission. Accessibility follows macOS's permission flow; Chrome access and notifications have separate **Allow…** buttons:
 
 - **Accessibility**, for the keys, to move windows, and to read Chrome's window titles and raise a window. The keys start by themselves as soon as it is granted.
 - **Automation of Google Chrome**, to read and switch tabs.
 - **Notifications**, to say why a key or a jump did nothing.
 
-Setup also adds CapsJump to your login items, so the keys are there from the moment you log in. Turn that off in System Settings › General › Login Items & Extensions.
+If Chrome access or notifications were previously denied, the Welcome window offers **Open Automation Settings** or **Open Notification Settings**. **Start at login** is a separate switch there; it can also be changed from CapsJump's menu.
 
 Releases are signed with a Developer ID and notarized, so macOS keeps these grants across upgrades.
 

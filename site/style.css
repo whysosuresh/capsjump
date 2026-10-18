@@ -116,6 +116,32 @@ h1 {
   color: var(--muted);
   font-size: clamp(17px, 2.4vw, 20px);
 }
+/* Download and Homebrew share a row when there is room; command-copy styles also serve the agent section. */
+.install-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.install-actions .install-line { min-width: 0; }
+.download-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 18px;
+  border: 1px solid var(--accent);
+  border-radius: 12px;
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  text-decoration: none;
+}
+.download-link:hover { text-decoration: underline; }
+.download-link:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 4px;
+}
 .install-line {
   display: inline-flex;
   align-items: center;

@@ -6,9 +6,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CapsJump</title>
-  <meta name="description" content="Caps Lock finally has a job. Hold it and press a key to bring an app forward, land on a site in the right Chrome account, snap a window, or open a link.">
+  <meta name="description" content="Caps Lock finally has a job: one key to the right app, window or tab, in the Chrome profile you choose.">
   <meta property="og:title" content="CapsJump: Caps Lock finally has a job">
-  <meta property="og:description" content="Hold Caps Lock and press a key: your app comes forward, GitHub opens in your work Chrome account, the window snaps to half the screen.">
+  <meta property="og:description" content="Caps Lock finally has a job: one key to the right app, window or tab, in the Chrome profile you choose.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://capsjump.com/">
   <meta property="og:image" content="https://capsjump.com/card.png">
@@ -29,15 +29,21 @@
   <main>
     <section class="hero">
       <h1>Caps Lock finally has a job.</h1>
-      <p class="lede">It spent decades waiting for someone to SHOUT. Now hold it and press a key: your terminal is just there, GitHub opens in your work Chrome account, the window snaps to half the screen. One small file says which key does what.</p>
-      <div class="install-line">
-        <code id="install">brew install --cask whysosuresh/tap/capsjump</code>
-        <button type="button" class="copy" data-copy="install" aria-label="Copy the install command">Copy</button>
+      <p class="lede">Hold it, press G: GitHub, in your work Chrome profile.</p>
+      <p class="fine">G is an example you configure. <a href="#chrome-shortcut">Give GitHub a key</a>.</p>
+      <!-- Release filenames contain versions; the latest release page stays current. -->
+      <div class="install-actions">
+        <a class="download-link" href="https://github.com/whysosuresh/capsjump/releases/latest" aria-describedby="hero-download-help">Download for Mac</a>
+        <div class="install-line">
+          <code id="install">brew install --cask whysosuresh/tap/capsjump</code>
+          <button type="button" class="copy" data-copy="install" aria-label="Copy the install command">Copy</button>
+        </div>
       </div>
+      <p class="fine" id="hero-download-help">Opens the latest GitHub release. Download the CapsJump ZIP under Assets.</p>
       <p class="fine">Free and open source, for macOS 13 or later.</p>
     </section>
 
-    <section class="demo" aria-label="Hold Caps Lock, then press G for the pull requests in your work Chrome account, the left arrow to snap that window to the left half, W for the #launch channel in Slack, and S for your terminal">
+    <section class="demo" aria-label="With these example keys configured, hold Caps Lock, then press G for the pull requests in your work Chrome profile, the left arrow to snap that window to the left half, W for the #launch channel in Slack, and S for your terminal">
       <svg viewBox="0 0 640 376" role="img" aria-hidden="true">
         <defs>
           <g id="desk-term">
@@ -83,9 +89,9 @@
         </g>
       </svg>
       <div class="legend">
-        <p class="legend-lead">Hold <kbd>Caps Lock</kbd>, then:</p>
+        <p class="legend-lead">With these example keys configured, hold <kbd>Caps Lock</kbd>, then:</p>
         <ol class="legend-list">
-          <li class="beat-g"><kbd>G</kbd> pull requests, in the work account</li>
+          <li class="beat-g"><kbd>G</kbd> pull requests, in the work Chrome profile</li>
           <li class="beat-left"><kbd>←</kbd> that window to the left half</li>
           <li class="beat-w"><kbd>W</kbd> the #launch channel in Slack</li>
           <li class="beat-s"><kbd>S</kbd> your terminal</li>
@@ -95,12 +101,12 @@
 
     <section class="panels">
       <article>
-        <h2>Apps</h2>
-        <p><kbd>Caps</kbd> + <kbd>S</kbd> and your terminal is just there. Not running? It starts. Hiding with no window? It opens one. No more fishing in the Dock.</p>
+        <h2>Chrome profiles</h2>
+        <p>Give GitHub a key in your work Chrome profile. CapsJump brings a matching tab forward when it can find one. If no tab matches, it opens the page in that profile.</p>
       </article>
       <article>
-        <h2>Chrome accounts</h2>
-        <p><kbd>Caps</kbd> + <kbd>G</kbd> lands on the GitHub tab in your work account. Not your personal one. Never your personal one. No tab yet? It opens one in the right place.</p>
+        <h2>Apps</h2>
+        <p><kbd>Caps</kbd> + <kbd>S</kbd> and your terminal is just there. Not running? It starts. Hiding with no window? It opens one. No more fishing in the Dock.</p>
       </article>
       <article>
         <h2>Windows</h2>
@@ -168,7 +174,7 @@ keys:
 
     <section class="agent">
       <h2>Or ask your coding agent</h2>
-      <p>Tell Claude Code, Codex, Cursor or another coding agent what you want, in your own words. With CapsJump's skill, it installs CapsJump if you don't have it yet, looks up your Chrome accounts instead of guessing an email, keeps your other keys, and has CapsJump check the file until it's clean. Then it tells you each new key in a line. Granting macOS permissions stays with you.</p>
+      <p>Tell Claude Code, Codex, Cursor or another coding agent what you want, in your own words. With CapsJump's skill, it installs CapsJump if you don't have it yet, looks up your Chrome profiles instead of guessing an email, keeps your other keys, and has CapsJump check the file until it's clean. Then it tells you each new key in a line. Granting macOS permissions stays with you.</p>
       <div class="install-line">
         <code id="skill">npx skills add whysosuresh/capsjump</code>
         <button type="button" class="copy" data-copy="skill" aria-label="Copy the command that installs CapsJump's skill">Copy</button>
@@ -180,21 +186,38 @@ keys:
 
     <section class="install">
       <h2>Install</h2>
+      <h3>Download</h3>
+      <a class="download-link" href="https://github.com/whysosuresh/capsjump/releases/latest" aria-describedby="install-download-help">Download for Mac</a>
+      <p class="fine" id="install-download-help">Opens the latest GitHub release. Download the CapsJump ZIP under Assets.</p>
+      <p>Unzip it, move <strong>CapsJump.app</strong> to Applications, and open it.</p>
+      <h3>Homebrew</h3>
 <pre><code>brew install --cask whysosuresh/tap/capsjump
 open -a CapsJump</code></pre>
-      <p>CapsJump opens a short Welcome window, three steps that tick themselves as you go:</p>
+      <p>Open source. CapsJump has no analytics. Quit CapsJump and Caps Lock works normally again.</p>
+      <p>Accessibility lets CapsJump handle your shortcuts and move windows. Chrome access lets it find and switch tabs. Configuration and saved icons are read locally; websites and apps you open make their own connections.</p>
+      <h3>Set up your keys</h3>
+      <p>Both routes open the same Welcome window, with three steps that tick themselves as you go:</p>
       <ol>
         <li><strong>Let CapsJump hear Caps Lock.</strong> macOS asks with its own box: click Open System Settings there and turn CapsJump on. The step ticks the moment you do.</li>
         <li><strong>Choose your keys.</strong> One click turns on the starter keys (the arrows snap the front window to a half, F fills the screen), or set up your own. While CapsJump has keys, Caps Lock no longer types capitals; Shift still does.</li>
         <li><strong>Try it.</strong> Click any window, hold Caps Lock and press ←.</li>
       </ol>
-      <p>Chrome accounts and notifications are there too, each asked only when you click it, and a switch for starting at login, on until you turn it off. Close the window whenever you like: CapsJump's mark in the menu bar carries a small dot until it's set up, and its menu starts with Finish Setting Up…. From a terminal, <code>capsjump setup</code> opens the same window and <code>capsjump init</code> writes the starter <code>~/.capsjump.yaml</code>.</p>
+      <p>Notifications and Start at login have their own controls in the Welcome window. Close it whenever you like: CapsJump's mark in the menu bar carries a small dot until it's set up, and its menu starts with Finish Setting Up….</p>
+      <h3 id="chrome-shortcut">Give GitHub a key</h3>
+      <p>G is an example you configure; the starter keys move windows.</p>
+      <ol>
+        <li>In the Welcome window, choose <strong>Allow…</strong> under <strong>Chrome accounts</strong>. If access was previously denied, choose <strong>Open Automation Settings</strong> instead.</li>
+        <li>Open GitHub in the Chrome profile you want, then choose <strong>Add Current Tab…</strong> from CapsJump's menu.</li>
+        <li>When the <strong>Account</strong> field is shown, confirm the intended profile; select it if it says <strong>Choose…</strong>. Assign G or another available key, then choose <strong>Add</strong> or <strong>Add Key</strong>.</li>
+        <li>Hold Caps Lock and press the key you assigned.</li>
+      </ol>
     </section>
 
     <section class="notes">
       <h2>Good to know</h2>
       <ul>
-        <li><strong>Chrome only, for sites.</strong> Site keys work with Google Chrome and its accounts; app, window and link keys work with anything.</li>
+        <li><strong>Chrome only, for sites.</strong> Site keys work with Google Chrome profiles; app, window and link keys work with other apps.</li>
+        <li><strong>Profiles and open tabs.</strong> CapsJump chooses the Chrome profile, not the account signed in on a website. Tabs on other desktops or in full-screen windows may open again. Profiles with the same window label open a new tab instead of reusing one.</li>
         <li><strong>Site icons and account pictures come from Chrome.</strong> Each site shows the icon Chrome has already saved on your Mac for that account, and each account the picture Chrome shows for it. Nothing is fetched; a site Chrome hasn't shown there yet keeps a globe.</li>
         <li><strong>Windows stay on their screen.</strong> A window snaps within the screen it is on; moving it to another screen isn't a key yet.</li>
         <li><strong>Not while typing a password.</strong> macOS keeps every app's shortcuts out of password fields; the keys work again as soon as you leave one.</li>
