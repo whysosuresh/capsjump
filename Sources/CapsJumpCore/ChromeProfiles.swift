@@ -3,7 +3,9 @@
 // window belongs to; the window title does, ending in the profile's label, so each
 // profile's label is derived here the way Chrome writes it: `<given name> (<profile
 // name>)` for a signed-in account, the bare profile name otherwise. Each profile also
-// carries what Chrome draws as its picture, decided by Chrome's own rule.
+// carries what Chrome draws as its picture, decided by Chrome's own rule. The listing is
+// what `capsjump profiles --json` prints, so a script copies a site's fields from the
+// same rule the window uses instead of working them out.
 
 import Foundation
 
@@ -176,6 +178,58 @@ public struct ProfileCatalog: Sendable, Equatable {
             return candidates[0]
         }
         throw .notFound(account: account, known: profiles.map { $0.email.isEmpty ? $0.name : $0.email })
+    }
+}
+
+/// The profiles as `capsjump profiles --json` prints them.
+public struct ProfileListing: Sendable, Equatable, Encodable {
+    public struct Entry: Sendable, Equatable, Encodable {
+        /// What a site in this profile writes; `profile` is left out when the account alone lands there.
+        public struct SiteFields: Sendable, Equatable, Encodable {
+            public let account: String
+            public let profile: String?
+        }
+
+        public let folder: String
+        /// The signed-in account's email; null, not left out, when nobody is signed in.
+        public let account: String?
+        public let name: String
+        public let windowLabel: String
+        /// The other folders whose windows carry the same label.
+        public let sharedWith: [String]
+        public let site: SiteFields
+
+        private enum CodingKeys: String, CodingKey {
+            case folder, account, name, windowLabel, sharedWith, site
+        }
+
+        public func encode(to encoder: any Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(folder, forKey: .folder)
+            try container.encode(account, forKey: .account)
+            try container.encode(name, forKey: .name)
+            try container.encode(windowLabel, forKey: .windowLabel)
+            try container.encode(sharedWith, forKey: .sharedWith)
+            try container.encode(site, forKey: .site)
+        }
+    }
+
+    public let profiles: [Entry]
+}
+
+extension ProfileCatalog {
+    public var listing: ProfileListing {
+        ProfileListing(profiles: profiles.map { profile in
+            let (account, folder) = SiteAccount.fields(for: profile, in: self)
+            return ProfileListing.Entry(
+                folder: profile.directory,
+                account: profile.email.isEmpty ? nil : profile.email,
+                name: profile.name,
+                windowLabel: profile.windowLabel,
+                sharedWith: sharingLabel(with: profile).map(\.directory),
+                site: .init(account: account, profile: folder)
+            )
+        })
     }
 }
 

@@ -157,13 +157,18 @@ final class StatusMenu: NSObject, NSMenuDelegate {
     @objc private func checkConfig() {
         let configPath = Paths.config()
         let statePath = Paths.chromeLocalState()
-        let findings = Checkup.run(
-            configText: try? String(contentsOf: configPath, encoding: .utf8),
+        let configText = try? String(contentsOf: configPath, encoding: .utf8)
+        var findings = Checkup.run(
+            configText: configText,
             configPath: configPath.path,
             localState: FileManager.default.contents(atPath: statePath.path),
             localStatePath: statePath.path,
             lookup: Lookup.thisMac
-        ) + KeyState.findings(config: try? Inputs.config(), running: true)
+        )
+        if let layout = Checkup.layout(configText: configText, configPath: configPath.path) {
+            findings.append(layout)
+        }
+        findings += KeyState.findings(config: try? Inputs.config(), running: true)
 
         let alert = NSAlert()
         let problems = findings.filter { $0.level == .problem }.count

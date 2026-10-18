@@ -1,0 +1,11 @@
+{
+  "name": "capsjump",
+  "description": "Your coding agent sets up CapsJump's Caps Lock shortcuts: apps, Chrome sites in the right account, window moves and links, checked by CapsJump itself.",
+  "author": {
+    "name": "CapsJump contributors",
+    "url": "https://github.com/whysosuresh/capsjump"
+  },
+  "homepage": "https://capsjump.com/",
+  "repository": "https://github.com/whysosuresh/capsjump",
+  "license": "MIT"
+}

@@ -166,6 +166,18 @@ keys:
       <p class="fine">Key names: <code>a</code>–<code>z</code>, <code>0</code>–<code>9</code>, <code>f1</code>–<code>f12</code> and the arrows. A file with no <code>keys:</code> leaves Caps Lock as it is.</p>
     </section>
 
+    <section class="agent">
+      <h2>Or ask your coding agent</h2>
+      <p>Tell Claude Code, Codex, Cursor or another coding agent what you want, in your own words. With CapsJump's skill, it installs CapsJump if you don't have it yet, looks up your Chrome accounts instead of guessing an email, keeps your other keys, and has CapsJump check the file until it's clean. Then it tells you each new key in a line. Granting macOS permissions stays with you.</p>
+      <div class="install-line">
+        <code id="skill">npx skills add whysosuresh/capsjump</code>
+        <button type="button" class="copy" data-copy="skill" aria-label="Copy the command that installs CapsJump's skill">Copy</button>
+      </div>
+      <p class="fine">Or, in Claude Code, as a plugin: <code>/plugin install capsjump --marketplace whysosuresh/capsjump</code></p>
+      <p>Then ask, for example:</p>
+      <blockquote class="prompt">Caps Lock + G should open our pull requests in my work Chrome, and Caps Lock + S my terminal.</blockquote>
+    </section>
+
     <section class="install">
       <h2>Install</h2>
 <pre><code>brew install --cask whysosuresh/tap/capsjump

@@ -2,12 +2,15 @@
 // for each site the profile and window label it resolves to, and for each key what it
 // does: the app it finds, the site, the window position, or the app that opens its link.
 // Each site's and key's finding is its own function, which the editing window shows beside
-// its row. The disk and the link handlers are injected, so every line is tested.
+// its row. The disk and the link handlers are injected, so every line is tested. Whether
+// the file is in the layout CapsJump writes is a note of its own, apart from `run`, which
+// says only what each site and key does; `CheckReport` is what `capsjump check --json`
+// prints, the findings about the file apart from those about the app.
 
 import Foundation
 
-public struct Finding: Sendable, Equatable {
-    public enum Level: String, Sendable {
+public struct Finding: Sendable, Equatable, Encodable {
+    public enum Level: String, Sendable, Encodable {
         case ok
         case note
         case problem
@@ -52,6 +55,15 @@ public enum Checkup {
             return [Finding(.note, "\(configPath) has no sites or keys yet")]
         }
         return sites(config, localState: localState, localStatePath: localStatePath) + keys(config, lookup: lookup)
+    }
+
+    /// A note when the file reads fine but isn't laid out as CapsJump writes it; nil when it
+    /// is, and when it is missing or broken, which `run` reports.
+    public static func layout(configText: String?, configPath: String) -> Finding? {
+        guard let configText, (try? ConfigParser.parse(configText)) != nil, !ConfigWriter.isCanonical(configText) else {
+            return nil
+        }
+        return Finding(.note, "\(configPath) isn't in the layout CapsJump writes; `capsjump tidy` rewrites it, and Edit Config… asks before saving over it")
     }
 
     private static func keys(_ config: Config, lookup: Lookup) -> [Finding] {
@@ -113,5 +125,22 @@ public enum Checkup {
         } catch {
             return Finding(.problem, "\(site.name): \(error)")
         }
+    }
+}
+
+/// What `capsjump check --json` prints: the file read (symlinks followed), whether nothing
+/// anywhere is a problem, what is wrong in the file, and what is wrong with the app, which
+/// only the person can fix.
+public struct CheckReport: Sendable, Equatable, Encodable {
+    public let config: String
+    public let ok: Bool
+    public let file: [Finding]
+    public let app: [Finding]
+
+    public init(config: String, file: [Finding], app: [Finding]) {
+        self.config = config
+        self.ok = !(file + app).contains { $0.level == .problem }
+        self.file = file
+        self.app = app
     }
 }

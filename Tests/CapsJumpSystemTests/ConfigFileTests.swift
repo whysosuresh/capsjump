@@ -1,6 +1,7 @@
 // Saving the config on a real disk, in a temporary folder: a new file, a file that
 // changed since it was read, a symlinked file (relative and absolute), its permissions, a
-// read-only file, and that nothing is left behind.
+// read-only file, and that nothing is left behind. And tidying it into CapsJump's layout:
+// a file already in it, one with comments, a broken one, a symlinked one, none at all.
 
 import Foundation
 import Testing
@@ -133,5 +134,56 @@ import Testing
 
         let written = try file.write(config, replacing: broken.text)
         #expect(try file.read() == ConfigFile.Contents(text: written, result: .success(config)))
+    }
+
+    @Test func tidyLeavesAFileInTheLayoutAlone() throws {
+        let file = ConfigFile(url: folder.appendingPathComponent(".capsjump.yaml"))
+        let written = try file.write(config, replacing: nil)
+        #expect(try file.tidy() == false)
+        #expect(text(".capsjump.yaml") == written)
+    }
+
+    @Test func tidyRewritesAFileOutsideTheLayout() throws {
+        let url = folder.appendingPathComponent(".capsjump.yaml")
+        let mine = "# my keys\n" + String(ConfigWriter.body(of: ConfigWriter.render(config)))
+        try mine.write(to: url, atomically: false, encoding: .utf8)
+        #expect(try ConfigFile(url: url).tidy() == true)
+        #expect(text(".capsjump.yaml") == ConfigWriter.render(config))
+        #expect(entries() == [".capsjump.yaml"])
+    }
+
+    @Test func tidyLeavesABrokenFileAsItIs() throws {
+        let url = folder.appendingPathComponent(".capsjump.yaml")
+        try "keys:\n  G: { window: maximize }\n".write(to: url, atomically: false, encoding: .utf8)
+        #expect {
+            try ConfigFile(url: url).tidy()
+        } throws: { error in
+            guard case let .broken(path, problems) = error as? ConfigFile.Failure else { return false }
+            return path == url.path && problems.problems == ["line 2: keys.G: unknown key name `G` (key names: a–z, 0–9, f1–f12, left, right, up, down)"]
+        }
+        #expect(text(".capsjump.yaml") == "keys:\n  G: { window: maximize }\n")
+    }
+
+    @Test func tidyKeepsTheSymlink() throws {
+        let dotfiles = folder.appendingPathComponent("dotfiles")
+        try FileManager.default.createDirectory(at: dotfiles, withIntermediateDirectories: true)
+        try "keys:\n  f: { window: maximize }\n".write(to: dotfiles.appendingPathComponent("capsjump.yaml"), atomically: false, encoding: .utf8)
+        let link = folder.appendingPathComponent(".capsjump.yaml")
+        try FileManager.default.createSymbolicLink(atPath: link.path, withDestinationPath: "dotfiles/capsjump.yaml")
+
+        #expect(try ConfigFile(url: link).tidy() == true)
+        #expect(try FileManager.default.destinationOfSymbolicLink(atPath: link.path) == "dotfiles/capsjump.yaml")
+        let tidied = try #require(text("dotfiles/capsjump.yaml"))
+        #expect(ConfigWriter.isCanonical(tidied))
+        #expect(try ConfigParser.parse(tidied) == Config(sites: [], keys: [KeyBinding(key: "f", action: .window(.maximize))]))
+        #expect(ConfigFile.followingLinks(link).path == dotfiles.appendingPathComponent("capsjump.yaml").path)
+    }
+
+    @Test func tidyNeedsAFile() throws {
+        let url = folder.appendingPathComponent(".capsjump.yaml")
+        #expect(throws: ConfigFile.Failure.missing(path: url.path)) {
+            try ConfigFile(url: url).tidy()
+        }
+        #expect(entries().isEmpty)
     }
 }

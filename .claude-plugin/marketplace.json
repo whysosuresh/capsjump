@@ -1,0 +1,15 @@
+{
+  "name": "capsjump",
+  "description": "CapsJump's skill for coding agents: set up Caps Lock shortcuts on a Mac.",
+  "owner": {
+    "name": "whysosuresh",
+    "url": "https://github.com/whysosuresh"
+  },
+  "plugins": [
+    {
+      "name": "capsjump",
+      "source": "./",
+      "description": "Your coding agent sets up CapsJump's Caps Lock shortcuts, checked by CapsJump itself."
+    }
+  ]
+}

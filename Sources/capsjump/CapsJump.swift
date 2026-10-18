@@ -1,8 +1,10 @@
-// The capsjump command: writes and checks the config, lists Chrome's profiles, and
+// The capsjump command: writes, checks and tidies the config, lists Chrome's profiles, and
 // hands links to CapsJump.app. It never talks to Chrome itself: the app holds the
 // permissions, so `jump` and `setup` go through macOS's link handling to it. `check` also
 // reads whether the app runs and whether Caps Lock is mapped, the two things the keys need;
 // `pause` and `resume` reach the running app by link, and `quit` asks it to quit.
+// `profiles --json` and `check --json` are for scripts and coding agents: what a site in
+// each profile writes, and what is wrong in the file apart from what is wrong with the app.
 
 import AppKit
 import ArgumentParser
@@ -18,7 +20,7 @@ struct CapsJump: ParsableCommand {
         abstract: "Shortcuts built around Caps Lock: apps, Chrome sites in the right account, windows and links.",
         discussion: "Keys and sites live in ~/.capsjump.yaml. Hold Caps Lock and press a key; each site is also the link capsjump://<name>.",
         version: Version.current,
-        subcommands: [Init.self, Profiles.self, Check.self, Jump.self, Setup.self, PauseCommand.self, ResumeCommand.self, QuitCommand.self, Logs.self, VersionCommand.self]
+        subcommands: [Init.self, Profiles.self, Check.self, Tidy.self, Jump.self, Setup.self, PauseCommand.self, ResumeCommand.self, QuitCommand.self, Logs.self, VersionCommand.self]
     )
 }
 
@@ -43,8 +45,15 @@ struct Init: ParsableCommand {
 struct Profiles: ParsableCommand {
     static let configuration = CommandConfiguration(abstract: "List Chrome's profiles: folder, account and window label.")
 
+    @Flag(help: "Print JSON: each profile's folder, account (null when nobody is signed in), name, window label, the folders sharing that label, and the fields a site in it writes.")
+    var json = false
+
     func run() throws {
         let catalog = try Inputs.profiles()
+        if json {
+            print(try JSONOutput.render(catalog.listing))
+            return
+        }
         let rows = catalog.profiles.map { profile in
             [profile.directory, profile.email.isEmpty ? "(not signed in)" : profile.email, profile.name,
              profile.windowLabel + (catalog.sharingLabel(with: profile).isEmpty ? "" : "  *")]
@@ -59,23 +68,47 @@ struct Profiles: ParsableCommand {
 struct Check: ParsableCommand {
     static let configuration = CommandConfiguration(abstract: "Validate the config, resolve every site and key, and confirm CapsJump.app runs them.")
 
+    @Flag(help: "Print JSON: the file read (symlinks followed), ok, and the findings about the file apart from those about the app.")
+    var json = false
+
     func run() throws {
         let configPath = Paths.config()
         let statePath = Paths.chromeLocalState()
-        var findings = Checkup.run(
-            configText: try? String(contentsOf: configPath, encoding: .utf8),
+        let configText = try? String(contentsOf: configPath, encoding: .utf8)
+        var file = Checkup.run(
+            configText: configText,
             configPath: configPath.path,
             localState: FileManager.default.contents(atPath: statePath.path),
             localStatePath: statePath.path,
             lookup: Lookup.thisMac
         )
-        findings.append(LinkHandler.finding())
-        findings += KeyState.findings(config: try? Inputs.config(), running: KeyState.appIsRunning)
-        for finding in findings {
-            print("\(finding.level.rawValue.padding(toLength: 8, withPad: " ", startingAt: 0))\(finding.text)")
+        if let layout = Checkup.layout(configText: configText, configPath: configPath.path) {
+            file.append(layout)
         }
-        if findings.contains(where: { $0.level == .problem }) {
+        let app = [LinkHandler.finding()] + KeyState.findings(config: try? Inputs.config(), running: KeyState.appIsRunning)
+        let report = CheckReport(config: ConfigFile.followingLinks(configPath).path, file: file, app: app)
+        if json {
+            print(try JSONOutput.render(report))
+        } else {
+            for finding in file + app {
+                print("\(finding.level.rawValue.padding(toLength: 8, withPad: " ", startingAt: 0))\(finding.text)")
+            }
+        }
+        if !report.ok {
             throw ExitCode.failure
+        }
+    }
+}
+
+struct Tidy: ParsableCommand {
+    static let configuration = CommandConfiguration(abstract: "Rewrite ~/.capsjump.yaml in the layout CapsJump writes, as Edit Config… saves it. Comments don't survive.")
+
+    func run() throws {
+        let file = ConfigFile()
+        if try file.tidy() {
+            print("tidied \(file.url.path)")
+        } else {
+            print("\(file.url.path) is already in CapsJump's layout")
         }
     }
 }

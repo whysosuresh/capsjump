@@ -102,7 +102,19 @@ While Caps Lock is held, a key with nothing bound does nothing. A file with no `
 - `open`: the page opened when no tab matches.
 - `match`: URL prefixes without the scheme, most specific first. A tab matches when its URL (without `https://` and `www.`) starts with one. The default is the `open` URL's host, e.g. `claude.ai/`.
 
-This is the layout CapsJump itself writes, and a file in it never loses anything when CapsJump saves it. A file with comments or a layout of its own is rewritten only after CapsJump asks. Edits apply as soon as the file is saved. Unknown keys are refused, so a typo is reported instead of being ignored. A broken edit keeps the keys you had and says what is wrong in a notification, and `capsjump check` lists every problem with its line.
+This is the layout CapsJump itself writes, and a file in it never loses anything when CapsJump saves it. A file with comments or a layout of its own is rewritten only after CapsJump asks; `capsjump check` notes such a file, and `capsjump tidy` rewrites it in CapsJump's layout (dropping its comments). Edits apply as soon as the file is saved. Unknown keys are refused, so a typo is reported instead of being ignored. A broken edit keeps the keys you had and says what is wrong in a notification, and `capsjump check` lists every problem with its line.
+
+### With a coding agent
+
+Rather tell your coding agent? Install CapsJump's skill once:
+
+```sh
+npx skills add whysosuresh/capsjump
+```
+
+That works for Claude Code, Codex, Cursor, Gemini CLI and other agents that read skills. In Claude Code you can install it as a plugin instead, with `/plugin install capsjump --marketplace whysosuresh/capsjump` (before Claude Code 2.1.275: `/plugin marketplace add whysosuresh/capsjump`, then `/plugin install capsjump@capsjump`).
+
+Then ask in your own words: "Caps Lock + G should open our pull requests in my work Chrome, and Caps Lock + S my terminal." The agent offers to install CapsJump if it isn't there, looks up your Chrome accounts with `capsjump profiles --json` instead of guessing an email, keeps your other keys, asks before taking a key that's in use, runs `capsjump tidy` and then `capsjump check --json` until the file is clean, and tells you each new key in a line. What only you can do, such as granting Accessibility, it hands back to you. The skill lives in [`skills/capsjump/SKILL.md`](skills/capsjump/SKILL.md).
 
 ## How Caps Lock becomes CapsJump's key
 
@@ -157,8 +169,9 @@ Site icons need no permission: the config window shows the icon Chrome has alrea
 | Command | |
 | --- | --- |
 | `capsjump init` | Write a starter `~/.capsjump.yaml`. Never overwrites. |
-| `capsjump profiles` | List Chrome's profiles: folder, account, name and window label. |
-| `capsjump check` | Validate the file, resolve every site and key, and confirm CapsJump.app is running with Caps Lock mapped. Exits non-zero on a problem. |
+| `capsjump profiles [--json]` | List Chrome's profiles: folder, account, name and window label. `--json` adds the folders sharing each label and the fields a site in each profile writes. |
+| `capsjump check [--json]` | Validate the file, resolve every site and key, and confirm CapsJump.app is running with Caps Lock mapped. Exits non-zero on a problem. `--json` gives the file it read (symlinks followed) and its findings about the file apart from those about the app. |
+| `capsjump tidy` | Rewrite `~/.capsjump.yaml` in the layout CapsJump writes, as Edit Config… saves it. Comments don't survive; a file with problems is left as it is. |
 | `capsjump jump <site>` | Jump, exactly as the link does. |
 | `capsjump setup` | Ask for the permissions, start CapsJump at login, and show each one's state. |
 | `capsjump pause` / `capsjump resume` | Give Caps Lock back, or take it again. |
@@ -189,6 +202,7 @@ Layout:
 - `Sources/capsjump`: the CLI.
 - `scripts/make-icon.sh` holds the mark and its colours, and writes every file that shows it: `packaging/icon.svg` and `packaging/AppIcon.icns` (the app icon), `packaging/menubar.svg` and `packaging/MenuBarIcon*.png` (the menu bar's), `site/icon.svg` and `site/icon.png` (the site's and the iPhone touch icon). Change the mark there, never in those files; CI runs `scripts/make-icon.sh --check` to keep them current.
 - `site/` is the website, hand-written with no build; `.github/workflows/pages.yaml` publishes it to GitHub Pages when it changes on `main`.
+- `skills/capsjump/SKILL.md` is the skill coding agents install, and `.claude-plugin/` makes this repository its Claude Code marketplace and plugin. A change to the config's rules updates the skill in the same PR; `SkillReferenceTests` fails when a window move or an action is missing from it.
 - `scripts/bundle.sh` builds the app bundle; `scripts/notarize.sh` and `scripts/macos-import-signing-keychain.sh` are the release's signing steps.
 
 ## Release

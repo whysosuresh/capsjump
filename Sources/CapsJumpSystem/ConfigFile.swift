@@ -4,7 +4,8 @@
 // expect, by moving a finished copy over that file in one rename, keeping its permissions;
 // and it parses what it is about to write first, so it never writes a file CapsJump itself
 // would refuse. The check and the rename are two steps: a write landing between them is
-// lost, and the watcher then just reloads.
+// lost, and the watcher then just reloads. Tidying is a save of what the file already says,
+// so a file edited by hand or by a script takes the layout CapsJump writes.
 
 import Darwin
 import Foundation
@@ -30,6 +31,10 @@ public struct ConfigFile: Sendable {
         /// What would have been written doesn't parse; nothing was written.
         case refused(ConfigError)
         case failed(path: String, reason: String)
+        /// There is no file to tidy.
+        case missing(path: String)
+        /// The file doesn't parse, so it was left as it is.
+        case broken(path: String, ConfigError)
 
         public var description: String {
             switch self {
@@ -37,6 +42,8 @@ public struct ConfigFile: Sendable {
             case let .readOnly(path): "\(path) is read-only, so it was left as it is"
             case let .refused(error): "CapsJump couldn't read back what it was about to save, so nothing was saved: \(error)"
             case let .failed(path, reason): "couldn't save \(path): \(reason)"
+            case let .missing(path): "no config at \(path); run `capsjump init`"
+            case let .broken(path, error): "\(path) was left as it is, because it has problems:\n" + error.problems.map { "  \($0)" }.joined(separator: "\n")
             }
         }
     }
@@ -83,6 +90,21 @@ public struct ConfigFile: Sendable {
         return text
     }
 
+    /// Rewrites the file in the layout CapsJump writes, as a save from the window does, so
+    /// its comments go; returns false when it already is in that layout.
+    @discardableResult
+    public func tidy() throws(Failure) -> Bool {
+        guard let contents = try read() else { throw .missing(path: url.path) }
+        let config: Config
+        switch contents.result {
+        case let .success(read): config = read
+        case let .failure(error): throw .broken(path: url.path, error)
+        }
+        guard !ConfigWriter.isCanonical(contents.text) else { return false }
+        try write(config, replacing: contents.text)
+        return true
+    }
+
     /// The text at `file`, or nil when nothing is there.
     private func current(at file: URL) throws(Failure) -> String? {
         guard FileManager.default.fileExists(atPath: file.path) else { return nil }
@@ -94,7 +116,7 @@ public struct ConfigFile: Sendable {
     }
 
     /// The file a chain of symlinks ends at, or `file` itself.
-    static func followingLinks(_ file: URL) -> URL {
+    public static func followingLinks(_ file: URL) -> URL {
         var current = file
         for _ in 0 ..< 32 {
             guard let destination = try? FileManager.default.destinationOfSymbolicLink(atPath: current.path) else { break }
