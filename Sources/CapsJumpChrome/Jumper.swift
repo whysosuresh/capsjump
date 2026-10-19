@@ -81,8 +81,8 @@ public enum Inputs {
 
 @MainActor
 public final class Jumper {
-    /// Chrome came to the front within 258 ms of the activation in every measured jump; a
-    /// jump looks for up to 500 ms, and the next key waits that long at most.
+    /// Chrome came to the front within 258 ms in every measured jump; a jump looks for up
+    /// to 500 ms, and the next key waits that long at most.
     private static let landingReads = 11
     private static let landingPause = Duration.milliseconds(50)
 
@@ -137,13 +137,12 @@ public final class Jumper {
         case let .focus(windowID, tabIndex, titleIndex):
             guard let scripting, let chrome else { throw .windowGone }
             let window = axWindows[titleIndex].element
-            // Measured on macOS 26: Chrome's own activate, or Accessibility's frontmost,
-            // brings every Chrome window forward over the app the person was in; one AppKit
-            // activation after the raise brings only this window.
+            // The script activates Chrome, which brings all its windows forward; the raise
+            // then puts this one on top of them.
             let carryOut = { () throws(ChromeError) in
                 try scripting.focus(windowID: windowID, tabIndex: tabIndex)
-                try ChromeAccessibility.raise(window)
                 chrome.activate()
+                try ChromeAccessibility.raise(window)
             }
             let read = { () throws(ChromeError) -> Foreground in
                 let front = NSWorkspace.shared.frontmostApplication

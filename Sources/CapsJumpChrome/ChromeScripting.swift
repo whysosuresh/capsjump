@@ -29,6 +29,7 @@ public final class ChromeScripting {
     		if minimized of w then set minimized of w to false
     		set active tab index of w to tabIdx
     		set index of w to 1
+    		activate
     	end tell
     end focustab
     """
@@ -68,8 +69,9 @@ public final class ChromeScripting {
         return WindowTabs(windowID: windowID, urls: urls, activeIndex: active)
     }
 
-    /// Activates the tab and brings its window to Chrome's front, without activating
-    /// Chrome: Chrome's own activate brings every one of its windows forward.
+    /// Activates the tab, brings its window to Chrome's front and activates Chrome. Chrome's
+    /// own activate brings every one of its windows forward, but it is the activation that
+    /// lands from another app on a signed build; AppKit's alone was refused there.
     public func focus(windowID: String, tabIndex: Int) throws(ChromeError) {
         _ = try call("focustab", NSAppleEventDescriptor(string: windowID), NSAppleEventDescriptor(int32: Int32(tabIndex)))
     }
