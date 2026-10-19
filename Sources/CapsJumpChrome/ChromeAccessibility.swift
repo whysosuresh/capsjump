@@ -1,6 +1,6 @@
 // Chrome's windows through Accessibility: the whole window titles, which end in the
-// profile's label, and raising one exact window. Read straight from Chrome's process, so
-// no second Automation grant (for System Events) is needed.
+// profile's label, raising one exact window, and which window has the focus. Read straight
+// from Chrome's process, so no second Automation grant (for System Events) is needed.
 
 import AppKit
 import ApplicationServices
@@ -22,9 +22,8 @@ public enum ChromeAccessibility {
         let status = AXUIElementCopyAttributeValue(element, kAXWindowsAttribute as CFString, &value)
         switch status {
         case .success: break
-        case .apiDisabled: throw .accessibilityDenied
         case .noValue: return []
-        default: throw .accessibility(code: status.rawValue)
+        default: throw failure(status, during: .read)
         }
         let windows = value as? [AXUIElement] ?? []
         return windows.compactMap { window in
@@ -33,11 +32,38 @@ public enum ChromeAccessibility {
         }
     }
 
-    /// Un-minimizes the window and raises it above Chrome's others.
-    public static func raise(_ window: AXUIElement) {
-        AXUIElementSetAttributeValue(window, kAXMinimizedAttribute as CFString, kCFBooleanFalse)
-        AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
-        AXUIElementPerformAction(window, kAXRaiseAction as CFString)
+    /// Makes the window Chrome's main window and raises it above Chrome's others.
+    /// Un-minimizing is the script's (`ChromeScripting.focus`).
+    public static func raise(_ window: AXUIElement) throws(ChromeError) {
+        let main = AXUIElementSetAttributeValue(window, kAXMainAttribute as CFString, kCFBooleanTrue)
+        guard main == .success else { throw failure(main, during: .raise) }
+        let raised = AXUIElementPerformAction(window, kAXRaiseAction as CFString)
+        guard raised == .success else { throw failure(raised, during: .raise) }
+    }
+
+    /// Chrome's focused window, or nil when it has none.
+    public static func focusedWindow(of app: NSRunningApplication) throws(ChromeError) -> AXUIElement? {
+        let element = AXUIElementCreateApplication(app.processIdentifier)
+        var value: CFTypeRef?
+        let status = AXUIElementCopyAttributeValue(element, kAXFocusedWindowAttribute as CFString, &value)
+        switch status {
+        case .success: break
+        case .noValue: return nil
+        default: throw failure(status, during: .read)
+        }
+        guard let value, CFGetTypeID(value) == AXUIElementGetTypeID() else { return nil }
+        return (value as! AXUIElement)
+    }
+
+    enum Step { case read, raise }
+
+    /// What a failed status means for the step that got it.
+    static func failure(_ status: AXError, during step: Step) -> ChromeError {
+        switch status {
+        case .apiDisabled: .accessibilityDenied
+        case .invalidUIElement: .windowGone
+        default: step == .read ? .accessibility(code: status.rawValue) : .raise(code: status.rawValue)
+        }
     }
 
     private static func string(_ element: AXUIElement, _ attribute: String) -> String? {

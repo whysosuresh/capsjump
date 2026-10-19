@@ -81,6 +81,11 @@ public enum Inputs {
 
 @MainActor
 public final class Jumper {
+    /// Chrome came to the front within 258 ms of the activation in every measured jump; a
+    /// jump looks for up to 500 ms, and the next key waits that long at most.
+    private static let landingReads = 11
+    private static let landingPause = Duration.milliseconds(50)
+
     private var scripting: ChromeScripting?
 
     public init() {}
@@ -131,9 +136,29 @@ public final class Jumper {
         switch action {
         case let .focus(windowID, tabIndex, titleIndex):
             guard let scripting, let chrome else { throw .windowGone }
-            try scripting.focus(windowID: windowID, tabIndex: tabIndex)
-            chrome.activate()
-            ChromeAccessibility.raise(axWindows[titleIndex].element)
+            let window = axWindows[titleIndex].element
+            // Measured on macOS 26: Chrome's own activate, or Accessibility's frontmost,
+            // brings every Chrome window forward over the app the person was in; one AppKit
+            // activation after the raise brings only this window.
+            let carryOut = { () throws(ChromeError) in
+                try scripting.focus(windowID: windowID, tabIndex: tabIndex)
+                try ChromeAccessibility.raise(window)
+                chrome.activate()
+            }
+            let read = { () throws(ChromeError) -> Foreground in
+                let front = NSWorkspace.shared.frontmostApplication
+                let chromeInFront = front?.processIdentifier == chrome.processIdentifier
+                let focused = chromeInFront ? try ChromeAccessibility.focusedWindow(of: chrome) : nil
+                return Foreground(
+                    chromeInFront: chromeInFront,
+                    frontApp: front?.localizedName,
+                    targetFocused: focused.map { CFEqual($0, window) } ?? false
+                )
+            }
+            let missed = try await Landing.land(carryOut: carryOut, read: read, reads: Self.landingReads) {
+                try? await Task.sleep(for: Self.landingPause)
+            }
+            if let missed { throw .notInFront(missed) }
             return .focused(site: target.site.name, windowID: windowID, tabIndex: tabIndex)
         case let .open(profileDirectory, url, reason):
             try await ChromeLauncher.open(url, profileDirectory: profileDirectory)

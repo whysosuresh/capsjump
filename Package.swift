@@ -9,7 +9,8 @@
 // CapsJumpApp runs the keys and receives capsjump:// links; capsjump is the CLI. Saving
 // the config has tests of its own (CapsJumpSystemTests), because its bugs would lose the
 // user's file; so does reading Chrome's saved site icons and profile pictures (CapsJumpChromeTests), because
-// it reads a format that is Chrome's, not ours, and its tests pin what was read. scripts/bundle.sh puts the app and the CLI into
+// it reads a format that is Chrome's, not ours, and its tests pin what was read; they also pin how
+// Accessibility's statuses become the errors a jump reports. scripts/bundle.sh puts the app and the CLI into
 // one CapsJump.app.
 
 import PackageDescription

@@ -2,6 +2,7 @@
 // Only the app talks to Chrome, so these reach people as its notifications; the two
 // permission cases open the Welcome window when clicked.
 
+import CapsJumpCore
 import Foundation
 
 public enum ChromeError: Error, Equatable, CustomStringConvertible {
@@ -11,6 +12,8 @@ public enum ChromeError: Error, Equatable, CustomStringConvertible {
     case windowGone
     case script(code: Int, message: String)
     case accessibility(code: Int32)
+    case raise(code: Int32)
+    case notInFront(NotInFront)
     case launch(String)
 
     public var description: String {
@@ -27,6 +30,12 @@ public enum ChromeError: Error, Equatable, CustomStringConvertible {
             "Chrome refused a script command (\(code)): \(message)"
         case let .accessibility(code):
             "Accessibility could not read Chrome's windows (error \(code))"
+        case let .raise(code):
+            "Accessibility could not bring Chrome's window forward (error \(code))"
+        case .notInFront(.otherApp(let app)):
+            "the window didn't come to the front; \(app ?? "another app") stayed in front"
+        case .notInFront(.otherWindow):
+            "Chrome kept another of its windows in front"
         case let .launch(message):
             "could not open Chrome: \(message)"
         }
