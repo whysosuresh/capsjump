@@ -229,11 +229,13 @@ Layout:
 - `scripts/make-icon.sh` holds the mark and its colours, and writes every file that shows it: `packaging/icon.svg` and `packaging/AppIcon.icns` (the app icon), `packaging/menubar.svg` and `packaging/MenuBarIcon*.png` (the menu bar's), `site/icon.svg` and `site/icon.png` (the site's and the iPhone touch icon). Change the mark there, never in those files; CI runs `scripts/make-icon.sh --check` to keep them current.
 - `site/` is the website, hand-written with no build; `.github/workflows/pages.yaml` publishes it to GitHub Pages when it changes on `main`.
 - `skills/capsjump/SKILL.md` is the skill coding agents install, and `.claude-plugin/` makes this repository its Claude Code marketplace and plugin. A change to the config's rules updates the skill in the same PR; `SkillReferenceTests` fails when a window move or an action is missing from it.
-- `scripts/bundle.sh` builds the app bundle; `scripts/notarize.sh` and `scripts/macos-import-signing-keychain.sh` are the release's signing steps.
+- `scripts/bundle.sh` builds the app bundle; `scripts/notarize.sh` and `scripts/macos-import-signing-keychain.sh` are the signing steps, which `.github/actions/signed-build` runs for both the release and the signed build below.
 
 ## Release
 
 Bump `VERSION`, merge, and push the tag `v<VERSION>`. `.github/workflows/release.yaml` tests, builds, signs, notarizes and staples, publishes the GitHub release, and updates the cask in [whysosuresh/homebrew-tap](https://github.com/whysosuresh/homebrew-tap). It needs the repository secrets listed at the top of that workflow.
+
+To try a change that only a signed build can prove (how a window is brought forward, say), run the Signed build workflow on its branch: `gh workflow run signed-build.yaml --ref <branch>`. It tests, signs and notarizes exactly as a release does, and keeps the zip as a run artifact for a day, without releasing anything. The repository is public, so delete the artifact once downloaded.
 
 ## License
 

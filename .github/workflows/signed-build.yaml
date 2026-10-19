@@ -1,0 +1,60 @@
+# Builds a signed, notarized CapsJump from any ref, run by hand, without releasing it: for
+# a change that only a signed build can prove, such as how a window is brought forward,
+# which an ad hoc build can do while the release is refused. It tests, then signs through
+# the same action the release uses (.github/actions/signed-build), and keeps the zip as a
+# run artifact named after VERSION and the commit, for one day. It never creates a release
+# and never touches the cask.
+#
+# The repository is public, so anyone signed in to GitHub can download the artifact while
+# it lasts; delete it once downloaded (gh api -X DELETE repos/<repo>/actions/artifacts/<id>).
+# It reads the seven Apple secrets the release reads, not the tap's deploy key.
+name: Signed build
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: signed-build-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - name: Name the build after VERSION and the commit
+        id: name
+        run: |
+          set -euo pipefail
+          echo "name=$(tr -d '[:space:]' < VERSION)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Test
+        run: swift test
+
+      - name: Build, sign, notarize and staple
+        id: build
+        uses: ./.github/actions/signed-build
+        with:
+          name: ${{ steps.name.outputs.name }}
+          certificate: ${{ secrets.APPLE_CERTIFICATE }}
+          certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          signing-identity: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          api-key: ${{ secrets.APPLE_API_KEY }}
+          api-issuer: ${{ secrets.APPLE_API_ISSUER }}
+          api-key-p8: ${{ secrets.APPLE_API_KEY_P8 }}
+
+      - name: Keep the zip for a day
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: CapsJump-${{ steps.name.outputs.name }}
+          path: ${{ steps.build.outputs.zip }}
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0

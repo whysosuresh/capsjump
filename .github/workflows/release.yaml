@@ -6,10 +6,11 @@
 # release uses (APPLE_CERTIFICATE as a base64 .p12, APPLE_CERTIFICATE_PASSWORD,
 # APPLE_SIGNING_IDENTITY, APPLE_TEAM_ID, APPLE_API_ISSUER, APPLE_API_KEY, APPLE_API_KEY_P8
 # as a base64 .p8) and HOMEBREW_TAP_DEPLOY_KEY, the private half of a deploy key with write
-# access to whysosuresh/homebrew-tap alone. The
-# scripts under scripts/ do the work and run the same on a laptop; these steps only move
-# secrets into files and environment variables. A release is never signed partly: with
-# any secret missing, the run stops before building.
+# access to whysosuresh/homebrew-tap alone. Signing and notarization happen in
+# .github/actions/signed-build, which the hand-run signed build (signed-build.yaml) calls
+# too, so the two are signed alike; the scripts under scripts/ do the work and run the
+# same on a laptop. A release is never signed partly: with any secret missing, the run
+# stops before building.
 name: Release
 
 on:
@@ -69,45 +70,16 @@ jobs:
       - name: Test
         run: swift test
 
-      - name: Import the signing certificate
-        env:
-          APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
-          APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: |
-          set -euo pipefail
-          P12="$RUNNER_TEMP/certificate.p12"
-          echo -n "$APPLE_CERTIFICATE" | base64 --decode > "$P12"
-          chmod 600 "$P12"
-          scripts/macos-import-signing-keychain.sh "$P12" "$RUNNER_TEMP/capsjump-signing.keychain-db"
-          rm -f "$P12"
-
-      - name: Install the notarization key
-        env:
-          APPLE_API_KEY_P8: ${{ secrets.APPLE_API_KEY_P8 }}
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-        run: |
-          set -euo pipefail
-          KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
-          echo -n "$APPLE_API_KEY_P8" | base64 --decode > "$KEY_PATH"
-          chmod 600 "$KEY_PATH"
-          echo "APPLE_API_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
-
-      - name: Build and sign
-        env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-        run: scripts/bundle.sh --identity "$APPLE_SIGNING_IDENTITY" --out "$RUNNER_TEMP/bundle"
-
-      - name: Notarize, staple and zip
-        env:
-          APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
-          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
-          APPLE_API_ISSUER: ${{ secrets.APPLE_API_ISSUER }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: |
-          set -euo pipefail
-          mkdir -p dist
-          scripts/notarize.sh "$RUNNER_TEMP/bundle/CapsJump.app" "dist/CapsJump-$VERSION.zip"
+      - name: Build, sign, notarize and staple
+        uses: ./.github/actions/signed-build
+        with:
+          name: ${{ steps.version.outputs.version }}
+          certificate: ${{ secrets.APPLE_CERTIFICATE }}
+          certificate-password: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+          signing-identity: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+          api-key: ${{ secrets.APPLE_API_KEY }}
+          api-issuer: ${{ secrets.APPLE_API_ISSUER }}
+          api-key-p8: ${{ secrets.APPLE_API_KEY_P8 }}
 
       - name: Publish the GitHub release
         env:

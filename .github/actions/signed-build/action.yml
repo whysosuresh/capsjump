@@ -1,0 +1,109 @@
+# Builds CapsJump universal, signs it with the Developer ID, notarizes and staples it, and
+# zips the stapled app. This is the one place a CapsJump build is signed: the release
+# (release.yaml) and the hand-run signed build (signed-build.yaml) both call it, so a build
+# made to try something is signed and notarized exactly as a release is.
+#
+# The scripts under scripts/ do the work and run the same on a laptop; these steps only
+# move the secrets into files and environment variables. A build is never signed partly:
+# with any input empty, it stops before building.
+name: Signed build
+description: Build, sign with the Developer ID, notarize, staple and zip CapsJump.app
+
+inputs:
+  name:
+    description: What the zip is named after; it is written to dist/CapsJump-<name>.zip
+    required: true
+  certificate:
+    description: The Developer ID certificate as a base64 .p12
+    required: true
+  certificate-password:
+    description: The .p12 password
+    required: true
+  signing-identity:
+    description: The identity both executables are signed with
+    required: true
+  api-key:
+    description: App Store Connect API key id
+    required: true
+  api-issuer:
+    description: App Store Connect issuer id
+    required: true
+  api-key-p8:
+    description: App Store Connect API key as a base64 .p8
+    required: true
+
+outputs:
+  zip:
+    description: Path of the zip holding the notarized, stapled app
+    value: ${{ steps.zip.outputs.zip }}
+
+runs:
+  using: composite
+  steps:
+    - name: Require every input
+      # A composite action's `required` is not enforced, so presence is checked here.
+      shell: bash
+      env:
+        NAME: ${{ inputs.name }}
+        CERTIFICATE: ${{ inputs.certificate }}
+        CERTIFICATE_PASSWORD: ${{ inputs.certificate-password }}
+        SIGNING_IDENTITY: ${{ inputs.signing-identity }}
+        API_KEY: ${{ inputs.api-key }}
+        API_ISSUER: ${{ inputs.api-issuer }}
+        API_KEY_P8: ${{ inputs.api-key-p8 }}
+      run: |
+        set -euo pipefail
+        missing=()
+        for name in NAME CERTIFICATE CERTIFICATE_PASSWORD SIGNING_IDENTITY API_KEY API_ISSUER API_KEY_P8; do
+          [ -n "${!name}" ] || missing+=("$name")
+        done
+        if [ "${#missing[@]}" -gt 0 ]; then
+          echo "::error::signed build inputs empty: ${missing[*]}; nothing was built"
+          exit 1
+        fi
+
+    - name: Import the signing certificate
+      shell: bash
+      env:
+        APPLE_CERTIFICATE: ${{ inputs.certificate }}
+        APPLE_CERTIFICATE_PASSWORD: ${{ inputs.certificate-password }}
+        APPLE_SIGNING_IDENTITY: ${{ inputs.signing-identity }}
+      run: |
+        set -euo pipefail
+        P12="$RUNNER_TEMP/certificate.p12"
+        echo -n "$APPLE_CERTIFICATE" | base64 --decode > "$P12"
+        chmod 600 "$P12"
+        scripts/macos-import-signing-keychain.sh "$P12" "$RUNNER_TEMP/capsjump-signing.keychain-db"
+        rm -f "$P12"
+
+    - name: Install the notarization key
+      shell: bash
+      env:
+        APPLE_API_KEY_P8: ${{ inputs.api-key-p8 }}
+        APPLE_API_KEY: ${{ inputs.api-key }}
+      run: |
+        set -euo pipefail
+        KEY_PATH="$RUNNER_TEMP/AuthKey_${APPLE_API_KEY}.p8"
+        echo -n "$APPLE_API_KEY_P8" | base64 --decode > "$KEY_PATH"
+        chmod 600 "$KEY_PATH"
+        echo "APPLE_API_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+
+    - name: Build and sign
+      shell: bash
+      env:
+        APPLE_SIGNING_IDENTITY: ${{ inputs.signing-identity }}
+      run: scripts/bundle.sh --identity "$APPLE_SIGNING_IDENTITY" --out "$RUNNER_TEMP/bundle"
+
+    - name: Notarize, staple and zip
+      id: zip
+      shell: bash
+      env:
+        APPLE_SIGNING_IDENTITY: ${{ inputs.signing-identity }}
+        APPLE_API_KEY: ${{ inputs.api-key }}
+        APPLE_API_ISSUER: ${{ inputs.api-issuer }}
+        NAME: ${{ inputs.name }}
+      run: |
+        set -euo pipefail
+        mkdir -p dist
+        scripts/notarize.sh "$RUNNER_TEMP/bundle/CapsJump.app" "dist/CapsJump-$NAME.zip"
+        echo "zip=dist/CapsJump-$NAME.zip" >> "$GITHUB_OUTPUT"
