@@ -10,7 +10,7 @@ import CapsJumpCore
 
 @MainActor
 public enum ChromeLauncher {
-    /// The new instance quit 59 ms after the open returned in the measured failure; an open
+    /// The new instance quit 44-87 ms after the open returned in 24 measured opens; an open
     /// looks for up to 2 s, and the next key waits that long at most.
     private static let handoverReads = 40
     private static let handoverPause = Duration.milliseconds(50)

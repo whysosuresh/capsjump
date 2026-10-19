@@ -86,7 +86,9 @@ public final class Jumper {
     /// to 500 ms, and the next key waits that long at most.
     private static let landingReads = 11
     private static let landingPause = Duration.milliseconds(50)
-    /// After an open, a jump looks for the page's tab up to 16 times, 50 ms apart.
+    /// Chrome showed a new window's tab within about 250 ms of its helper quitting in 8
+    /// measured opens; a jump looks up to 16 times, 50 ms apart, and the next key waits
+    /// that long at most.
     private static let tabReads = 16
     private static let tabPause = Duration.milliseconds(50)
 
