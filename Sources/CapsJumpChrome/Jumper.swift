@@ -1,5 +1,6 @@
 // One jump, live: read the config and Chrome's profiles afresh (so edits need no reload),
-// gather Chrome's windows and titles, let Core decide, and carry the decision out.
+// gather Chrome's windows and titles, let Core decide, and carry the decision out. An open
+// ends once a jump to the site would find the page's tab, so the next key lands on it.
 
 import AppKit
 import CapsJumpCore
@@ -85,6 +86,9 @@ public final class Jumper {
     /// to 500 ms, and the next key waits that long at most.
     private static let landingReads = 11
     private static let landingPause = Duration.milliseconds(50)
+    /// After an open, a jump looks for the page's tab up to 16 times, 50 ms apart.
+    private static let tabReads = 16
+    private static let tabPause = Duration.milliseconds(50)
 
     private var scripting: ChromeScripting?
 
@@ -109,7 +113,15 @@ public final class Jumper {
         }
     }
 
-    private func perform(_ target: Target) async throws(ChromeError) -> Outcome {
+    /// What Chrome shows now, and what a jump to the target would do with it.
+    private struct Reading {
+        let chrome: NSRunningApplication?
+        let axWindows: [AXWindow]
+        let scripting: ChromeScripting?
+        let action: Action
+    }
+
+    private func read(_ target: Target) throws(ChromeError) -> Reading {
         let chrome = ChromeLauncher.runningChrome
         var windows: [ChromeWindow] = []
         var axWindows: [AXWindow] = []
@@ -132,11 +144,15 @@ public final class Jumper {
             guard let scripting else { throw .windowGone }
             return try scripting.tabs(windowID: id)
         }
+        return Reading(chrome: chrome, axWindows: axWindows, scripting: scripting, action: action)
+    }
 
-        switch action {
+    private func perform(_ target: Target) async throws(ChromeError) -> Outcome {
+        let reading = try read(target)
+        switch reading.action {
         case let .focus(windowID, tabIndex, titleIndex):
-            guard let scripting, let chrome else { throw .windowGone }
-            let window = axWindows[titleIndex].element
+            guard let scripting = reading.scripting, let chrome = reading.chrome else { throw .windowGone }
+            let window = reading.axWindows[titleIndex].element
             // Measured on macOS 26: Chrome's own activate, or Accessibility's frontmost,
             // brings every Chrome window forward over the app the person was in. Raised and
             // made main first, this window is the one AppKit's activation brings forward, by
@@ -164,6 +180,11 @@ public final class Jumper {
             return .focused(site: target.site.name, windowID: windowID, tabIndex: tabIndex)
         case let .open(profileDirectory, url, reason):
             try await ChromeLauncher.open(url, profileDirectory: profileDirectory)
+            // Chrome can show the new tab a moment after the open returns; a key pressed
+            // meanwhile would open the page twice. The jump ends once a jump would find it.
+            await Handover.waitForTab(target: target, reads: Self.tabReads, decide: { try? self.read(target).action }) {
+                try? await Task.sleep(for: Self.tabPause)
+            }
             return .opened(site: target.site.name, profileDirectory: profileDirectory, reason: reason)
         }
     }
