@@ -23,13 +23,30 @@
 <body>
   <header class="bar">
     <a class="brand" href="./"><img src="icon.svg" alt="" width="32" height="32"> CapsJump</a>
-    <a class="bar-link" href="https://github.com/whysosuresh/capsjump">GitHub</a>
+    <nav class="bar-links">
+      <a class="bar-link" href="https://github.com/whysosuresh/capsjump">GitHub</a>
+      <a class="bar-download" href="https://github.com/whysosuresh/capsjump/releases/latest">Download</a>
+    </nav>
   </header>
 
   <main>
     <section class="hero">
       <h1>Caps Lock finally has a job.</h1>
       <p class="lede">Hold it, press G: GitHub, in your work Chrome profile.</p>
+      <figure class="hero-video">
+        <!-- A real recording at real speed: the keys press when CapsJump's own log says they arrived.
+             Phones get a taller framing of the same take; the script below plays it unless the
+             visitor asked for reduced motion. -->
+        <video id="demo" muted loop playsinline preload="metadata" poster="demo-poster.jpg"
+               aria-label="A real recording at real speed: Caps Lock and G bring GitHub forward in the Work Chrome profile over the Personal one; left snaps it to the left half; S brings Terminal forward; right snaps Terminal to the right half">
+          <source src="demo-phone.webm" type="video/webm" media="(max-width: 640px)">
+          <source src="demo-phone.mp4" type="video/mp4" media="(max-width: 640px)">
+          <source src="demo.webm" type="video/webm">
+          <source src="demo.mp4" type="video/mp4">
+        </video>
+        <button type="button" class="video-toggle" aria-controls="demo" aria-pressed="false">Pause</button>
+        <figcaption>Hold <kbd>Caps Lock</kbd>, then <kbd>G</kbd> GitHub in the Work profile, <kbd>←</kbd> snap left, <kbd>S</kbd> Terminal, <kbd>→</kbd> snap right. A real recording at real speed; the keys are examples you choose.</figcaption>
+      </figure>
       <p class="fine">G is an example you configure. <a href="#chrome-shortcut">Give GitHub a key</a>.</p>
       <!-- Release filenames contain versions; the latest release page stays current. -->
       <div class="install-actions">
@@ -43,61 +60,6 @@
       <p class="fine">Free and open source, for macOS 13 or later.</p>
     </section>
 
-    <section class="demo" aria-label="With these example keys configured, hold Caps Lock, then press G for the pull requests in your work Chrome profile, the left arrow to snap that window to the left half, W for the #launch channel in Slack, and S for your terminal">
-      <svg viewBox="0 0 640 376" role="img" aria-hidden="true">
-        <defs>
-          <g id="desk-term">
-            <image class="shot-light" href="demo-term.webp" x="322" y="32" width="306" height="262"/>
-            <image class="shot-dark" href="demo-term-dark.webp" x="322" y="32" width="306" height="262"/>
-          </g>
-          <g id="desk-chat">
-            <image class="shot-light" href="demo-slack.webp" x="56" y="78" width="286" height="196"/>
-            <image class="shot-dark" href="demo-slack-dark.webp" x="56" y="78" width="286" height="196"/>
-          </g>
-        </defs>
-        <rect class="screen" x="6" y="6" width="628" height="300" rx="12"/>
-        <path class="menubar" d="M6 18 A12 12 0 0 1 18 6 H622 A12 12 0 0 1 634 18 V26 H6 Z"/>
-        <text class="menu-app app-term" x="20" y="20">Terminal</text>
-        <text class="menu-app app-chrome" x="20" y="20">Chrome</text>
-        <text class="menu-app app-slack" x="20" y="20">Slack</text>
-        <text class="menu" x="80" y="20">File Edit View Window Help</text>
-        <text class="menu end" x="620" y="20">Tue 10:24</text>
-        <g class="windows">
-          <use href="#desk-term"/>
-          <use href="#desk-chat"/>
-          <g class="chrome">
-            <g class="page-docs">
-              <image class="shot-light" href="demo-chrome-docs.webp" x="168" y="40" width="304" height="262"/>
-              <image class="shot-dark" href="demo-chrome-docs-dark.webp" x="168" y="40" width="304" height="262"/>
-            </g>
-            <g class="page-pr">
-              <image class="shot-light" href="demo-chrome-pr.webp" x="168" y="40" width="304" height="262"/>
-              <image class="shot-dark" href="demo-chrome-pr-dark.webp" x="168" y="40" width="304" height="262"/>
-            </g>
-            <circle class="account-ring" cx="442.5" cy="71.5" r="7"/>
-          </g>
-          <use class="chat-front" href="#desk-chat"/>
-          <use class="term-front" href="#desk-term"/>
-        </g>
-        <g class="keys">
-          <g class="key key-caps"><rect class="key-base" x="136" y="325" width="120" height="46" rx="9"/><g class="cap"><rect class="key-top" x="136" y="322" width="120" height="46" rx="9"/><text class="key-glyph key-label" x="148" y="359">caps lock</text></g></g>
-          <text class="plus" x="269" y="352">+</text>
-          <g class="key key-g"><rect class="key-base" x="282" y="325" width="48" height="46" rx="9"/><g class="cap"><rect class="key-top" x="282" y="322" width="48" height="46" rx="9"/><text class="key-glyph key-letter" x="306" y="352">G</text></g></g>
-          <g class="key key-left"><rect class="key-base" x="340" y="325" width="48" height="46" rx="9"/><g class="cap"><rect class="key-top" x="340" y="322" width="48" height="46" rx="9"/><path class="key-glyph" d="M357 345 L370 338 V352 Z"/></g></g>
-          <g class="key key-w"><rect class="key-base" x="398" y="325" width="48" height="46" rx="9"/><g class="cap"><rect class="key-top" x="398" y="322" width="48" height="46" rx="9"/><text class="key-glyph key-letter" x="422" y="352">W</text></g></g>
-          <g class="key key-s"><rect class="key-base" x="456" y="325" width="48" height="46" rx="9"/><g class="cap"><rect class="key-top" x="456" y="322" width="48" height="46" rx="9"/><text class="key-glyph key-letter" x="480" y="352">S</text></g></g>
-        </g>
-      </svg>
-      <div class="legend">
-        <p class="legend-lead">With these example keys configured, hold <kbd>Caps Lock</kbd>, then:</p>
-        <ol class="legend-list">
-          <li class="beat-g"><kbd>G</kbd> pull requests, in the work Chrome profile</li>
-          <li class="beat-left"><kbd>←</kbd> that window to the left half</li>
-          <li class="beat-w"><kbd>W</kbd> the #launch channel in Slack</li>
-          <li class="beat-s"><kbd>S</kbd> your terminal</li>
-        </ol>
-      </div>
-    </section>
 
     <section class="panels">
       <article>
@@ -232,6 +194,23 @@ open -a CapsJump</code></pre>
   </footer>
 
   <script>
+    // The demo loop plays only when the visitor has not asked for reduced motion, and can always be
+    // paused. If the browser refuses to autoplay (Low Power Mode), the poster and the button remain.
+    {
+      const video = document.getElementById("demo");
+      const toggle = document.querySelector(".video-toggle");
+      if (matchMedia("(max-width: 640px)").matches) video.poster = "demo-phone-poster.jpg";
+      const show = (playing) => {
+        toggle.textContent = playing ? "Pause" : "Play";
+        toggle.setAttribute("aria-pressed", String(!playing));
+      };
+      video.addEventListener("play", () => show(true));
+      video.addEventListener("pause", () => show(false));
+      toggle.addEventListener("click", () => (video.paused ? video.play() : video.pause()));
+      show(false);
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches) video.play().catch(() => show(false));
+    }
+
     // The copy button, with a fallback text when the clipboard is unavailable.
     for (const button of document.querySelectorAll("button.copy")) {
       button.addEventListener("click", async () => {
