@@ -137,12 +137,15 @@ public final class Jumper {
         case let .focus(windowID, tabIndex, titleIndex):
             guard let scripting, let chrome else { throw .windowGone }
             let window = axWindows[titleIndex].element
-            // The script activates Chrome, which brings all its windows forward; the raise
-            // then puts this one on top of them.
+            // Measured on macOS 26: Chrome's own activate, or Accessibility's frontmost,
+            // brings every Chrome window forward over the app the person was in. Raised and
+            // made main first, this window is the one AppKit's activation brings forward, by
+            // default only the main and key windows. The order lands from another app on the
+            // notarized release too (#48); the landing check reports the jump if it doesn't.
             let carryOut = { () throws(ChromeError) in
                 try scripting.focus(windowID: windowID, tabIndex: tabIndex)
-                chrome.activate()
                 try ChromeAccessibility.raise(window)
+                chrome.activate()
             }
             let read = { () throws(ChromeError) -> Foreground in
                 let front = NSWorkspace.shared.frontmostApplication

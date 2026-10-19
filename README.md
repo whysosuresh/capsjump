@@ -169,7 +169,7 @@ From a terminal: `capsjump pause`, `capsjump resume` and `capsjump quit`. To rem
 A `site` key, or the link `capsjump://<name>`, runs a jump:
 
 1. Finds the site's Chrome profile from Chrome's own profile list.
-2. If Chrome is running, looks through that profile's windows, front to back, for a tab whose URL matches the first `match` prefix, then the next, preferring a window's active tab. It brings that tab and its window to the front.
+2. If Chrome is running, looks through that profile's windows, front to back, for a tab whose URL matches the first `match` prefix, then the next, preferring a window's active tab. It brings that tab and its window to the front, and only that window: Chrome's other windows stay where they were.
 3. Otherwise it opens the `open` page in that profile: a new tab in its window, or a new window, starting Chrome if needed.
 
 Chrome's scripting interface doesn't say which profile a window belongs to, but its window title does (it ends in `– <profile label>`), and macOS Accessibility reads that title. CapsJump pairs each Chrome window with its title, so a window's profile is known without guessing. Accessibility lists only the windows on the current Space, so CapsJump sees only those: from a full-screen window or another desktop, a site whose tab is in a window elsewhere gets a new tab instead of being focused. Keep Chrome's windows on one desktop and out of full screen for jumps to find them. If two profiles carry the same label, their windows can't be told apart, so their sites always open a new tab; `capsjump check` says when that applies.
