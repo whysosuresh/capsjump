@@ -1,6 +1,7 @@
 // What the Welcome window's "Try it" step says: that a key pressed while the window itself
-// is in front was heard (a window move there would have nothing to move), and what the
-// first key that ran elsewhere did, in the words the config window uses for the same moves.
+// is in front was heard (a window move there would have nothing to move, and a key with
+// nothing bound does nothing anywhere), and what the first key that ran did, in the words
+// the config window uses for the same moves.
 // And what its first step adds while Accessibility is missing: the switch in System Settings
 // belongs to one copy of CapsJump, so it can show on for another copy than this one. The
 // way out is to remove that row and open CapsJump again, so macOS asks for this copy: on
@@ -9,9 +10,11 @@
 import Foundation
 
 public enum WelcomeWording {
-    /// A key pressed with Caps Lock while the Welcome window is in front.
-    public static func heard(_ trigger: KeyTrigger) -> String {
+    /// A key pressed with Caps Lock while the Welcome window is in front; `action` is what
+    /// it is bound to, if anything.
+    public static func heard(_ trigger: KeyTrigger, _ action: KeyAction?) -> String {
         let key = KeyNames.name(for: trigger).map { "Caps Lock + \(KeyNames.symbol(for: $0))" } ?? "Caps Lock"
+        guard action != nil else { return "Heard \(key), which isn't one of your keys yet." }
         return "Heard \(key). Now click another window and press it again."
     }
 

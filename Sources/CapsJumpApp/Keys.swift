@@ -10,8 +10,9 @@
 // and lasts until resumed, across restarts. Every change of state, the grant included,
 // calls `onChange`, which redraws the menu-bar icon and the Welcome window. A key field in
 // CapsJump's own window can ask for the keys pressed with Caps Lock instead of their
-// actions; that ends whenever CapsJump stops being the active app, so no field left
-// listening can keep the keys from working elsewhere.
+// actions, and the Welcome window for its window keys and unbound ones only; that ends
+// whenever CapsJump stops being the active app, so nothing left listening can keep the
+// keys from working elsewhere.
 
 import CapsJumpChrome
 import CapsJumpCore
@@ -43,10 +44,10 @@ final class Keys {
         }
     }
 
-    /// What key fields use to hear the keys pressed with Caps Lock.
+    /// What key fields and the Welcome window use to hear the keys pressed with Caps Lock.
     var listening: KeyListening {
         KeyListening(
-            listen: { [weak self] owner, heard in self?.layer.listen(owner, heard) },
+            listen: { [weak self] owner, hearing, heard in self?.layer.listen(owner, hearing: hearing, heard) },
             stop: { [weak self] owner in self?.layer.stopListening(owner) }
         )
     }

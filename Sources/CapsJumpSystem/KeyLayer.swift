@@ -4,8 +4,8 @@
 // run loop, which is the only reason the C callback may assume the main actor. Whether
 // Caps Lock is held is asked of the system on every event. When macOS switches the tap off
 // (a slow callback, or secure input), it is switched straight back on. A key the rules hand
-// to a listening key field reaches it on the main actor's next turn, never inside the
-// callback, so the tap never waits on a view.
+// to a listener reaches it on the main actor's next turn, with what it is bound to, never
+// inside the callback, so the tap never waits on a view.
 
 import AppKit
 import CapsJumpCore
@@ -17,7 +17,7 @@ public final class KeyLayer {
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private let onAction: @MainActor (KeyAction) -> Void
-    private var onHeard: (@MainActor (KeyTrigger) -> Void)?
+    private var onHeard: (@MainActor (KeyTrigger, KeyAction?) -> Void)?
 
     /// NX_SYSDEFINED and its media-key subtype.
     private static let systemDefined = CGEventType(rawValue: 14)!
@@ -33,10 +33,15 @@ public final class KeyLayer {
         rules.bindings = bindings
     }
 
-    /// Hands each key pressed with Caps Lock to `heard` instead of running it, until
-    /// `owner` stops; another owner listening before is replaced.
-    public func listen(_ owner: ObjectIdentifier, _ heard: @escaping @MainActor (KeyTrigger) -> Void) {
-        rules.listen(owner)
+    /// Hands each key pressed with Caps Lock that `hearing` hears to `heard` instead of
+    /// running it, with what it is bound to, until `owner` stops; another owner listening
+    /// before is replaced.
+    public func listen(
+        _ owner: ObjectIdentifier,
+        hearing: KeyRules.Hearing,
+        _ heard: @escaping @MainActor (KeyTrigger, KeyAction?) -> Void
+    ) {
+        rules.listen(owner, hearing: hearing)
         onHeard = heard
     }
 
@@ -93,9 +98,9 @@ public final class KeyLayer {
         case let .run(action):
             onAction(action)
             return true
-        case let .heard(trigger):
+        case let .heard(trigger, action):
             if let onHeard {
-                Task { @MainActor in onHeard(trigger) }
+                Task { @MainActor in onHeard(trigger, action) }
             }
             return true
         }

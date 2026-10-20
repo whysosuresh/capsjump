@@ -8,9 +8,9 @@
 // before. Each row reads its state again every second while the window is open, so a
 // switch flipped in System Settings shows here at once. Nothing takes Caps Lock until the person turns keys
 // on, next to the line that says Caps Lock stops typing capitals. While the window itself
-// is in front, keys pressed with Caps Lock are heard rather than run (a window move would
-// try to move this fixed-size window), and the step says so; the first key that runs
-// elsewhere ticks it. The button of the step at hand is the prominent one, but no step's
+// is in front, a window key pressed with Caps Lock is heard rather than run (it would try
+// to move this fixed-size window), and so is a key with nothing bound, and the step says
+// which; every other key runs, and the first key that runs, here or elsewhere, ticks it. The button of the step at hand is the prominent one, but no step's
 // button answers Return: the window can come forward while someone is typing elsewhere,
 // and a stray Return must never raise a macOS request. Done answers Return once all three
 // steps are ticked, and Escape before that. The window opens by itself on a launch while CapsJump isn't set up,
@@ -155,13 +155,14 @@ final class WelcomeModel: ObservableObject {
         login = SMAppService.mainApp.status
     }
 
-    /// A key pressed in the window itself; once a key has worked, the step stays ticked.
-    func heard(_ trigger: KeyTrigger) {
+    /// A window key or an unbound one pressed in the window itself; once a key has worked,
+    /// the step stays ticked.
+    func heard(_ trigger: KeyTrigger, _ action: KeyAction?) {
         if case .worked = tryIt { return }
-        tryIt = .heard(WelcomeWording.heard(trigger))
+        tryIt = .heard(WelcomeWording.heard(trigger, action))
     }
 
-    /// The first key that ran elsewhere ticks the step.
+    /// The first key that ran, here or elsewhere, ticks the step.
     func worked(_ text: String) {
         if case .worked = tryIt { return }
         tryIt = .worked(text)
@@ -513,7 +514,7 @@ final class Welcome: NSObject, NSWindowDelegate {
 
     func windowDidBecomeKey(_ notification: Notification) {
         guard let model else { return }
-        keys.listening.listen(ObjectIdentifier(self)) { [weak model] trigger in model?.heard(trigger) }
+        keys.listening.listen(ObjectIdentifier(self), .windowAndUnbound) { [weak model] trigger, action in model?.heard(trigger, action) }
     }
 
     func windowDidResignKey(_ notification: Notification) {

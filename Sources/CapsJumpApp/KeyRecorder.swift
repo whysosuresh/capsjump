@@ -19,14 +19,15 @@ import AppKit
 import CapsJumpCore
 import SwiftUI
 
-/// How a key field asks the keys to hand it what is pressed with Caps Lock: one field
-/// listens at a time, and only it can stop. Views read it from the environment; the app
-/// gives the windows the keys' own, and without the keys it does nothing.
+/// How a key field asks the keys to hand it what is pressed with Caps Lock: one listener
+/// at a time, and only it can stop. The Welcome window listens through it too, for its
+/// window keys and unbound ones only. Views read it from the environment; the app gives
+/// the windows the keys' own, and without the keys it does nothing.
 struct KeyListening: Sendable {
-    let listen: @MainActor @Sendable (ObjectIdentifier, @escaping @MainActor @Sendable (KeyTrigger) -> Void) -> Void
+    let listen: @MainActor @Sendable (ObjectIdentifier, KeyRules.Hearing, @escaping @MainActor @Sendable (KeyTrigger, KeyAction?) -> Void) -> Void
     let stop: @MainActor @Sendable (ObjectIdentifier) -> Void
 
-    static let none = KeyListening(listen: { _, _ in }, stop: { _ in })
+    static let none = KeyListening(listen: { _, _, _ in }, stop: { _ in })
 }
 
 private struct KeyListeningKey: EnvironmentKey {
@@ -191,7 +192,7 @@ final class RecorderView: NSView {
         guard !isListening else { return }
         isListening = true
         listeningIn = window
-        keys.listen(ObjectIdentifier(self)) { [weak self] trigger in self?.take(trigger, [], typed: nil) }
+        keys.listen(ObjectIdentifier(self), .every) { [weak self] trigger, _ in self?.take(trigger, [], typed: nil) }
         monitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { [weak self] event in
             // A local monitor runs on the main thread, as the event is dispatched.
             nonisolated(unsafe) let event = event

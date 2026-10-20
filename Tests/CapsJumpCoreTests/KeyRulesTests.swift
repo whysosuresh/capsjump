@@ -1,8 +1,10 @@
 // Every rule of the event tap: Caps Lock is swallowed, a bound key runs once, an unbound
 // key does nothing while Caps Lock is held, a swallowed press swallows its key-up and
 // repeats, and nothing is touched when no key is bound. While a key field listens, a key
-// pressed with Caps Lock is heard instead of run, swallowed all the same, and only the
-// field listening can stop it. Then where each window move puts the window.
+// pressed with Caps Lock is heard instead of run, with what it is bound to, swallowed all
+// the same, and only the field listening can stop it; while the Welcome window listens,
+// only a window key or an unbound one is heard, and every other key runs. Then where each
+// window move puts the window.
 
 import Foundation
 import Testing
@@ -119,12 +121,12 @@ import Testing
     @Test func aListeningFieldHearsKeysInsteadOfRunningThem() throws {
         var rules = try rules()
         let field = Field()
-        rules.listen(ObjectIdentifier(field))
+        rules.listen(ObjectIdentifier(field), hearing: .every)
         #expect(rules.isListening)
         // Bound or not, the key is heard and nothing runs.
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .heard(g))
-        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true)) == .heard(x))
-        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: true)) == .heard(volumeUp))
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .heard(g, site))
+        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true)) == .heard(x, nil))
+        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: true)) == .heard(volumeUp, window))
         // Its repeats and key-up are swallowed as a run key's are.
         #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: true)) == .swallow)
         #expect(rules.decide(KeyEvent(g, .up, capsHeld: true)) == .swallow)
@@ -143,12 +145,12 @@ import Testing
         var rules = try rules()
         let first = Field()
         let second = Field()
-        rules.listen(ObjectIdentifier(first))
-        rules.listen(ObjectIdentifier(second))
+        rules.listen(ObjectIdentifier(first), hearing: .every)
+        rules.listen(ObjectIdentifier(second), hearing: .every)
         // The first field was replaced; its stop is late and changes nothing.
         rules.stopListening(ObjectIdentifier(first))
-        #expect(rules.listener == ObjectIdentifier(second))
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .heard(g))
+        #expect(rules.listener?.owner == ObjectIdentifier(second))
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .heard(g, site))
         // Stopping with no owner ends whoever listens.
         rules.stopListening()
         #expect(!rules.isListening)
@@ -156,9 +158,28 @@ import Testing
         #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
     }
 
+    @Test func theWelcomeWindowHearsOnlyWindowAndUnboundKeys() throws {
+        var rules = try rules()
+        let f12 = try #require(KeyNames.triggers(for: "f12")?.first)
+        let welcome = Field()
+        rules.listen(ObjectIdentifier(welcome), hearing: .windowAndUnbound)
+        // A site key runs, as it would anywhere.
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true)) == .swallow)
+        // A window key would move the listening window, so it is heard, with its action.
+        #expect(rules.decide(KeyEvent(f12, .down, capsHeld: true)) == .heard(f12, window))
+        #expect(rules.decide(KeyEvent(f12, .up, capsHeld: true)) == .swallow)
+        // A key with nothing bound is heard, so the window can say so.
+        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true)) == .heard(x, nil))
+        #expect(rules.decide(KeyEvent(x, .up, capsHeld: true)) == .swallow)
+        #expect(rules.swallowed.isEmpty)
+        rules.stopListening(ObjectIdentifier(welcome))
+        #expect(rules.decide(KeyEvent(f12, .down, capsHeld: true)) == .run(window))
+    }
+
     @Test func withNoKeysBoundAListeningFieldGetsTheKeyFromItsWindow() {
         var rules = KeyRules()
-        rules.listen(ObjectIdentifier(Field()))
+        rules.listen(ObjectIdentifier(Field()), hearing: .every)
         #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .pass)
     }
 

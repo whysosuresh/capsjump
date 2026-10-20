@@ -1,5 +1,5 @@
-// What the Welcome window's "Try it" step says for a key heard in the window and for each
-// kind of key that ran, and what step 1 adds about a switch that is already on, with one
+// What the Welcome window's "Try it" step says for a key heard in the window, bound or not,
+// and for each kind of key that ran, and what step 1 adds about a switch that is already on, with one
 // copy of CapsJump and with several.
 
 import Foundation
@@ -8,9 +8,14 @@ import Testing
 
 @Suite struct WelcomeWordingTests {
     @Test func aHeardKeyIsNamedAsItIsPressed() {
-        #expect(WelcomeWording.heard(.key(0x7B)) == "Heard Caps Lock + ←. Now click another window and press it again.")
-        #expect(WelcomeWording.heard(.key(0x05)) == "Heard Caps Lock + G. Now click another window and press it again.")
-        #expect(WelcomeWording.heard(.key(0x31)) == "Heard Caps Lock. Now click another window and press it again.")
+        #expect(WelcomeWording.heard(.key(0x7B), .window(.leftHalf)) == "Heard Caps Lock + ←. Now click another window and press it again.")
+        #expect(WelcomeWording.heard(.key(0x05), .window(.maximize)) == "Heard Caps Lock + G. Now click another window and press it again.")
+        #expect(WelcomeWording.heard(.key(0x31), .window(.maximize)) == "Heard Caps Lock. Now click another window and press it again.")
+    }
+
+    @Test func aHeardKeyWithNothingBoundSaysSoInsteadOfAskingForAnotherPress() {
+        #expect(WelcomeWording.heard(.key(0x01), nil) == "Heard Caps Lock + S, which isn't one of your keys yet.")
+        #expect(WelcomeWording.heard(.key(0x31), nil) == "Heard Caps Lock, which isn't one of your keys yet.")
     }
 
     @Test func eachKindOfKeySaysWhatItDid() {
