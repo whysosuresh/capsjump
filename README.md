@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="packaging/icon.svg" width="160" alt="CapsJump icon: the Caps Lock arrow leaping, with motion lines behind it">
+  <img src="packaging/icon.svg" width="160" alt="CapsJump icon: the Caps Lock arrow leaping, printed on a Caps Lock key">
 </p>
 
 <h1 align="center">CapsJump</h1>
