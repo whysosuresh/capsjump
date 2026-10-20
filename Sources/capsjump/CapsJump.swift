@@ -85,7 +85,10 @@ struct Check: ParsableCommand {
         if let layout = Checkup.layout(configText: configText, configPath: configPath.path) {
             file.append(layout)
         }
-        let app = [LinkHandler.finding()] + KeyState.findings(config: try? Inputs.config(), running: KeyState.appIsRunning)
+        let copies = Copies.finding(copies: Installs.onDisk, linksGoTo: LinkHandler.app.map(Installs.display), running: Installs.running)
+        let app = [LinkHandler.finding()]
+            + KeyState.findings(config: try? Inputs.config(), running: KeyState.appIsRunning, severalCopies: copies != nil)
+            + [copies].compactMap { $0 }
         let report = CheckReport(config: ConfigFile.followingLinks(configPath).path, file: file, app: app)
         if json {
             print(try JSONOutput.render(report))

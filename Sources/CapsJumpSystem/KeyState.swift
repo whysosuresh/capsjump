@@ -1,7 +1,8 @@
 // What the app and the CLI both read about the keys on this Mac: whether they are paused
 // (kept in the app's preferences, so a pause outlives a restart and `capsjump check` can
 // tell paused from broken), what `check` reports about the running app and the mapping,
-// and the live lookup the checkup uses for apps and link handlers.
+// the copies of CapsJump.app on this Mac, and the live lookup the checkup uses for apps and
+// link handlers.
 
 import AppKit
 import CapsJumpCore
@@ -24,7 +25,8 @@ public enum Pause {
 
 public enum KeyState {
     /// Whether the app runs and Caps Lock is mapped, when the config binds keys.
-    public static func findings(config: Config?, running: Bool) -> [Finding] {
+    /// `severalCopies` points the Accessibility problem at the note on copies.
+    public static func findings(config: Config?, running: Bool, severalCopies: Bool = false) -> [Finding] {
         let mapped = KeyMapping.isInPlace()
         guard config?.takesCapsLock == true else {
             return mapped ? [Finding(.note, "Caps Lock is still mapped though no key is bound; CapsJump gives it back when it next reads the config")] : []
@@ -39,12 +41,32 @@ public enum KeyState {
             app,
             mapped
                 ? Finding(.ok, "Caps Lock is mapped for the keys")
-                : Finding(.problem, "Caps Lock isn't mapped, so the keys do nothing; CapsJump needs Accessibility (`capsjump setup`)"),
+                : Finding(.problem, "Caps Lock isn't mapped, so the keys do nothing; CapsJump needs Accessibility (`capsjump setup`)\(severalCopies ? Copies.accessibilityHint : "")"),
         ]
     }
 
     public static var appIsRunning: Bool {
         !NSRunningApplication.runningApplications(withBundleIdentifier: Identity.bundleID).isEmpty
+    }
+}
+
+/// The copies of CapsJump.app on this Mac, by path with the home folder as `~`.
+public enum Installs {
+    /// Every copy Launch Services knows of that is still on disk.
+    public static var onDisk: [String] {
+        let paths = NSWorkspace.shared.urlsForApplications(withBundleIdentifier: Identity.bundleID)
+            .filter { FileManager.default.fileExists(atPath: $0.path) }
+            .map(display)
+        return Array(Set(paths)).sorted()
+    }
+
+    /// The copies running now.
+    public static var running: [String] {
+        NSRunningApplication.runningApplications(withBundleIdentifier: Identity.bundleID).compactMap { $0.bundleURL.map(display) }
+    }
+
+    public static func display(_ url: URL) -> String {
+        (url.standardizedFileURL.path as NSString).abbreviatingWithTildeInPath
     }
 }
 

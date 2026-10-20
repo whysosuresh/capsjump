@@ -3,7 +3,8 @@
 // optional rows say what else it can use and why (Chrome accounts, notifications, starting
 // at login). Accessibility is asked once, by macOS's own box, which macOS shows by itself
 // while CapsJump lacks it; the first step says what that box wants instead of raising
-// another. Chrome and notifications are asked when their buttons are pressed, never
+// another, and, since the switch can belong to another copy of CapsJump, what to do when
+// it already shows on. Chrome and notifications are asked when their buttons are pressed, never
 // before. Each row reads its state again every second while the window is open, so a
 // switch flipped in System Settings shows here at once. Nothing takes Caps Lock until the person turns keys
 // on, next to the line that says Caps Lock stops typing capitals. While the window itself
@@ -62,6 +63,9 @@ final class WelcomeModel: ObservableObject {
     @Published private(set) var status: KeyStatus
     @Published private(set) var boundKeys: Int?
     @Published private(set) var accessibility: Bool
+    /// The copies of CapsJump on this Mac, read only while Accessibility is missing.
+    @Published private(set) var copies: [String] = []
+    let thisCopy = Setup.thisCopy
     @Published private(set) var chrome: PermissionState = .unknown
     @Published private(set) var chromeProblem: String?
     @Published private(set) var notifications: PermissionState = .unknown
@@ -84,6 +88,7 @@ final class WelcomeModel: ObservableObject {
         boundKeys = keys.boundKeys
         accessibility = Setup.hasAccessibility
         login = SMAppService.mainApp.status
+        if !accessibility { copies = Setup.copies }
     }
 
     var keysChosen: Bool { (boundKeys ?? 0) > 0 }
@@ -99,6 +104,7 @@ final class WelcomeModel: ObservableObject {
     func refresh() async {
         readKeys()
         accessibility = Setup.hasAccessibility
+        if !accessibility { copies = Setup.copies }
         login = SMAppService.mainApp.status
         notifications = await notifier.state
         if !askingChrome, chromeInstalled {
@@ -224,6 +230,11 @@ struct WelcomeView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Button("Open Accessibility Settings") { Setup.open(.accessibility) }
                     .buttonStyle(.borderedProminent)
+                Text(WelcomeWording.alreadyOn(copies: model.copies, this: model.thisCopy))
+                    .font(.callout)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button("Show This Copy in Finder") { Setup.showThisCopy() }.buttonStyle(.link)
             }
         }
     }

@@ -1,6 +1,9 @@
 // What the Welcome window's "Try it" step says: that a key pressed while the window itself
 // is in front was heard (a window move there would have nothing to move), and what the
 // first key that ran elsewhere did, in the words the config window uses for the same moves.
+// And what its first step adds while Accessibility is missing: the switch in System Settings
+// belongs to one copy of CapsJump, so it can show on for another copy than this one, and
+// the way out is to remove that row and add this copy.
 
 import Foundation
 
@@ -27,5 +30,17 @@ public enum WelcomeWording {
         case .url:
             "The link opened."
         }
+    }
+
+    /// The line under step 1 while Accessibility is missing; `copies` are the paths of every
+    /// copy on this Mac, and `this` the running one's.
+    public static func alreadyOn(copies: [String], this: String) -> String {
+        let fix = "Select CapsJump in the list, remove it with −, then add this one with +."
+        let others = copies.filter { $0 != this }
+        guard let first = others.first else {
+            return "Already switched on? That switch is for an older copy of CapsJump. \(fix)"
+        }
+        let elsewhere = others.count == 1 ? "The other is at \(first)." : "The others are at \(others.joined(separator: ", "))."
+        return "Already switched on? This Mac has \(others.count + 1) copies of CapsJump, and the switch can belong to only one. This one is at \(this). \(elsewhere) \(fix)"
     }
 }

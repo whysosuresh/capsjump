@@ -4,10 +4,13 @@
 // Automation can be asked for only while Chrome runs. Accessibility is never asked here:
 // macOS shows its own request whenever CapsJump reads it without access (see Permissions),
 // and that one request is the only ask. The login item is the Welcome window's switch.
+// While Accessibility is missing the window also names the copies of CapsJump on this Mac,
+// since the switch can belong to another one, and shows this copy in Finder to add it.
 
 import AppKit
 import CapsJumpChrome
 import CapsJumpCore
+import CapsJumpSystem
 import ServiceManagement
 
 @MainActor
@@ -26,6 +29,15 @@ enum Setup {
 
     static var chromeInstalled: Bool {
         NSWorkspace.shared.urlForApplication(withBundleIdentifier: Identity.chromeBundleID) != nil
+    }
+
+    /// Every copy of CapsJump on this Mac, and this one, by path.
+    static var copies: [String] { Installs.onDisk }
+    static var thisCopy: String { Installs.display(Bundle.main.bundleURL) }
+
+    /// Selects this copy in Finder, to drag into the Accessibility list or add with +.
+    static func showThisCopy() {
+        NSWorkspace.shared.activateFileViewerSelecting([Bundle.main.bundleURL])
     }
 
     /// Automation of Chrome as it stands; unknown while Chrome is closed.
