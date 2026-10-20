@@ -234,7 +234,6 @@ struct WelcomeView: View {
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
-                Button("Show This Copy in Finder") { Setup.showThisCopy() }.buttonStyle(.link)
             }
         }
     }

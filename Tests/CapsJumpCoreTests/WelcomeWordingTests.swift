@@ -23,16 +23,16 @@ import Testing
     }
 
     @Test func withOneCopyTheSwitchThatIsOnIsAnOlderBuildOfIt() {
-        let one = "Already switched on? That switch is for an older copy of CapsJump. Select CapsJump in the list, remove it with −, then add this one with +."
+        let one = "Already switched on? That switch is for an older copy of CapsJump. Select CapsJump in the list and remove it with −, then quit CapsJump from the menu bar and open it again, and turn it on when macOS asks."
         #expect(WelcomeWording.alreadyOn(copies: ["/Applications/CapsJump.app"], this: "/Applications/CapsJump.app") == one)
         #expect(WelcomeWording.alreadyOn(copies: [], this: "/Applications/CapsJump.app") == one)
     }
 
     @Test func withSeveralCopiesEachIsNamedAndThisOneApart() {
         #expect(WelcomeWording.alreadyOn(copies: ["/Applications/CapsJump.app", "~/Applications/CapsJump.app"], this: "/Applications/CapsJump.app")
-            == "Already switched on? This Mac has 2 copies of CapsJump, and the switch can belong to only one. This one is at /Applications/CapsJump.app. The other is at ~/Applications/CapsJump.app. Select CapsJump in the list, remove it with −, then add this one with +.")
+            == "Already switched on? This Mac has 2 copies of CapsJump, and the switch can belong to only one. This one is at /Applications/CapsJump.app. The other is at ~/Applications/CapsJump.app. Select CapsJump in the list and remove it with −, then quit CapsJump from the menu bar and open it again, and turn it on when macOS asks.")
         #expect(WelcomeWording.alreadyOn(copies: ["/Applications/CapsJump.app", "~/a/CapsJump.app", "~/b/CapsJump.app"], this: "~/a/CapsJump.app")
-            == "Already switched on? This Mac has 3 copies of CapsJump, and the switch can belong to only one. This one is at ~/a/CapsJump.app. The others are at /Applications/CapsJump.app, ~/b/CapsJump.app. Select CapsJump in the list, remove it with −, then add this one with +.")
+            == "Already switched on? This Mac has 3 copies of CapsJump, and the switch can belong to only one. This one is at ~/a/CapsJump.app. The others are at /Applications/CapsJump.app, ~/b/CapsJump.app. Select CapsJump in the list and remove it with −, then quit CapsJump from the menu bar and open it again, and turn it on when macOS asks.")
     }
 
     @Test func aCopyMissingFromTheListStillCountsItself() {
