@@ -27,7 +27,7 @@ The README's [Develop](README.md#develop) section has the commands and the code 
 
 - `make test` runs the same tests as CI. CI also checks the icons (`scripts/make-icon.sh --check`) and builds the bundle (`scripts/bundle.sh`).
 - The rules live in `Sources/CapsJumpCore`, with their tests. A new rule comes with a test that fails without it.
-- Keep only one CapsJump on your Mac while you test a local build. The release and your build share an app ID, so macOS keeps one set of permissions for both, and they keep taking it from each other. Quit the release, move it out of Applications (its login item follows it, so it has to go, not just be renamed), then `make install-local`. Found by @harsha-at-magicshake while testing #44.
+- Keep only one CapsJump on your Mac while you test a local build. The release and your build share an app ID, so macOS keeps one set of permissions for both, and they keep taking it from each other. Quit the release, move it out of Applications (its login item follows it, so it has to go, not just be renamed), then `make install-local`, which refuses while the release is still there. `make uninstall-local` takes your build out again, and then the release asks for Accessibility once. Found by @harsha-at-magicshake while testing #44.
 - Some changes, like how a window is brought forward, can only be proven on a signed build. Say so in the PR, and the maintainer will run a signed build of it.
 
 ## Code style

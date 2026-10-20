@@ -215,9 +215,10 @@ Requires Xcode 16 or later (Swift 6).
 make test            # unit tests (Swift Testing)
 make app             # .build/bundle/CapsJump.app, universal, signed ad hoc
 make install-local   # install that build to ~/Applications and the CLI to ~/.local/bin
+make uninstall-local # remove it again, to go back to the release
 ```
 
-A local build is signed ad hoc, and macOS ties its permissions to that exact build, so every rebuild asks for them again: `make install-local` clears the old entries, then run `capsjump setup`. Released builds don't have this problem.
+A local build is signed ad hoc, and macOS ties its permissions to that exact build, so every rebuild asks for them again: `make install-local` clears the old entries, then run `capsjump setup`. Released builds don't have this problem. Because those entries belong to the app ID, clearing them clears the release's too, so `make install-local` refuses while the release is in /Applications: move it out first (see [CONTRIBUTING.md](CONTRIBUTING.md#build-and-test)).
 
 Layout:
 
