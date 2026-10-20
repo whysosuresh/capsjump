@@ -3,8 +3,10 @@
 // work in a text field. File, Delete, Find and View are the config window's (new, save,
 // remove, search, Sites and Keys); like every item here they go to the first responder, so
 // the config window answers them and they grey out while another window is in front. After
-// the last window closes CapsJump goes back to living in the menu bar alone. Here too: the
-// version the app was built as, and the About panel that shows it.
+// the last window closes CapsJump goes back to living in the menu bar alone. A site key
+// pressed in another app meanwhile runs with CapsJump in the menu bar alone for that jump,
+// since macOS refuses an ordinary app that isn't in front when it asks to bring Chrome
+// forward. Here too: the version the app was built as, and the About panel that shows it.
 
 import AppKit
 
@@ -91,6 +93,19 @@ enum AppWindows {
         open.remove(ObjectIdentifier(window))
         if open.isEmpty {
             NSApp.setActivationPolicy(.accessory)
+        }
+    }
+
+    /// Before a jump brings Chrome forward. Measured on 0.9.6 from another app: with a
+    /// window open and CapsJump not in front, Chrome's activation was refused every time;
+    /// with no window, or CapsJump in front, it was honoured. So for that one jump CapsJump
+    /// leaves the Dock, and the returned function brings it back unless the last window
+    /// closed meanwhile. The windows stay where they are.
+    static func whileJumping() -> @MainActor () -> Void {
+        guard !open.isEmpty, !NSApp.isActive else { return {} }
+        NSApp.setActivationPolicy(.accessory)
+        return {
+            if !open.isEmpty { NSApp.setActivationPolicy(.regular) }
         }
     }
 }

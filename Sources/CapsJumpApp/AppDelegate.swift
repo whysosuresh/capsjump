@@ -28,7 +28,7 @@ import os
 @MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private let logger = Logger(subsystem: Identity.bundleID, category: "jump")
-    private let jumper = Jumper()
+    private let jumper = Jumper(activating: AppWindows.whileJumping)
     private let notifier = Notifier()
     private var tail: Task<Void, Never>?
     private var welcomeShownForFailure = false

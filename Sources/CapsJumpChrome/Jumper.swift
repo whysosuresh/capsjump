@@ -93,8 +93,13 @@ public final class Jumper {
     private static let tabPause = Duration.milliseconds(50)
 
     private var scripting: ChromeScripting?
+    /// Runs before a focus asks macOS to bring Chrome forward; what it returns runs once
+    /// the landing check has ended. The app uses it to make its request one macOS honours.
+    private let activating: @MainActor () -> @MainActor () -> Void
 
-    public init() {}
+    public init(activating: @escaping @MainActor () -> @MainActor () -> Void = { {} }) {
+        self.activating = activating
+    }
 
     public func jump(to name: String) async throws(JumpError) -> Outcome {
         let config = try Inputs.config()
@@ -159,7 +164,8 @@ public final class Jumper {
             // brings every Chrome window forward over the app the person was in. Raised and
             // made main first, this window is the one AppKit's activation brings forward, by
             // default only the main and key windows. The order lands from another app on the
-            // notarized release too (#48); the landing check reports the jump if it doesn't.
+            // notarized release too (#48), as long as the app asking is one macOS honours
+            // (`activating`, #46); the landing check reports the jump if it doesn't.
             let carryOut = { () throws(ChromeError) in
                 try scripting.focus(windowID: windowID, tabIndex: tabIndex)
                 try ChromeAccessibility.raise(window)
@@ -175,6 +181,8 @@ public final class Jumper {
                     targetFocused: focused.map { CFEqual($0, window) } ?? false
                 )
             }
+            let restore = activating()
+            defer { restore() }
             let missed = try await Landing.land(carryOut: carryOut, read: read, reads: Self.landingReads) {
                 try? await Task.sleep(for: Self.landingPause)
             }
