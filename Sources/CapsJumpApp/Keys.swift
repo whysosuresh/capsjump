@@ -4,7 +4,9 @@
 // Caps Lock is mapped only while the tap runs, so it never becomes a key that nothing
 // handles, and `stop` gives it back. While Accessibility is missing it is checked every two
 // seconds, from launch whether or not a key is bound yet, and the keys start by themselves
-// once it is granted. A pause (from the menu bar or `capsjump pause`) gives Caps Lock back
+// once it is granted. Each try waits first: macOS can read Accessibility as granted and
+// still refuse the tap, and a try that didn't wait would follow the refusal at once,
+// again and again. A pause (from the menu bar or `capsjump pause`) gives Caps Lock back
 // and lasts until resumed, across restarts. Every change of state, the grant included,
 // calls `onChange`, which redraws the menu-bar icon and the Welcome window. A key field in
 // CapsJump's own window can ask for the keys pressed with Caps Lock instead of their
@@ -29,6 +31,8 @@ final class Keys {
     private var lastNotice: String?
     private var permissionNoticeShown = false
     private var waitingForAccess: Task<Void, Never>?
+    private var refusedWhileTrusted = false
+    private static let accessibilityPause = Duration.seconds(2)
     var onChange: (@MainActor () -> Void)?
 
     init(notifier: Notifier, onAction: @escaping @MainActor (KeyAction) -> Void) {
@@ -125,7 +129,12 @@ final class Keys {
         }
         guard layer.start() else {
             KeyMapping.apply(false)
-            logger.error("the event tap was refused; Accessibility is missing")
+            if !AXIsProcessTrusted() {
+                logger.error("the event tap was refused; Accessibility is missing")
+            } else if !refusedWhileTrusted {
+                refusedWhileTrusted = true
+                logger.error("Accessibility reads granted but macOS refused the event tap")
+            }
             if !permissionNoticeShown {
                 permissionNoticeShown = true
                 notifier.post("CapsJump needs Accessibility for its keys; click to finish setting up", opensWelcome: true)
@@ -142,12 +151,13 @@ final class Keys {
     private func waitForAccessibility() {
         guard waitingForAccess == nil else { return }
         waitingForAccess = Task { [weak self] in
-            while !AXIsProcessTrusted() {
-                try? await Task.sleep(for: .seconds(2))
-            }
-            self?.waitingForAccess = nil
-            self?.logger.notice("Accessibility granted; starting the keys")
-            self?.apply()
+            repeat {
+                try? await Task.sleep(for: Self.accessibilityPause)
+            } while !AXIsProcessTrusted()
+            guard let self else { return }
+            waitingForAccess = nil
+            if !refusedWhileTrusted { logger.notice("Accessibility granted; starting the keys") }
+            apply()
         }
     }
 }
