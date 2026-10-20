@@ -1,0 +1,46 @@
+name: Bug report
+description: Something CapsJump does that it shouldn't, or doesn't do that it should.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Thanks for taking the time. These details are what it takes to see the same problem on another Mac.
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: What you pressed, what you expected, and what happened instead. For example, "Caps Lock + G should bring up GitHub in my work profile, but it opened a new window in my personal one."
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version
+      placeholder: macOS 26.2
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: CapsJump version
+      description: Run `capsjump --version`, or open About CapsJump from its menu. If you installed from the ZIP, the command is at `/Applications/CapsJump.app/Contents/Helpers/capsjump`.
+      placeholder: "0.9.5"
+    validations:
+      required: true
+  - type: input
+    id: browser
+    attributes:
+      label: Browser and version
+      description: Only if a site key is involved.
+      placeholder: Google Chrome 141
+  - type: textarea
+    id: check
+    attributes:
+      label: What capsjump check prints
+      description: Run `capsjump check` and paste what it prints. Please read it over first. It can show your home folder, and when an account isn't found it lists every Chrome account on your Mac. Swap email addresses and names for something like `work@example.com`. Profile folder names such as `Profile 2` are fine to keep.
+      render: text
+  - type: textarea
+    id: more
+    attributes:
+      label: Anything else
+      description: Logs from `capsjump logs --last 10m`, a screenshot, or what you already tried. Same as above, read it over for anything personal first.
