@@ -1,7 +1,7 @@
-// Chrome through Apple Events: its windows' ids and names, a window's tabs, and focusing a
-// tab. One compiled script holds three handlers, and each call passes its values as typed
-// Apple Event parameters, so no value is ever spliced into script text. Chrome reports
-// window ids as text, and they go back to it as text.
+// Chrome through Apple Events: its windows' ids, names and modes, a window's tabs, and
+// focusing a tab. One compiled script holds three handlers, and each call passes its values
+// as typed Apple Event parameters, so no value is ever spliced into script text. Chrome
+// reports window ids as text, and they go back to it as text.
 
 import AppKit
 import Carbon
@@ -12,7 +12,7 @@ public final class ChromeScripting {
     private static let source = """
     on windowlist()
     	tell application id "\(Identity.chromeBundleID)"
-    		return {id of every window, name of every window}
+    		return {id of every window, name of every window, mode of every window}
     	end tell
     end windowlist
 
@@ -54,7 +54,8 @@ public final class ChromeScripting {
         guard count > 0 else { return [] }
         return (1...count).compactMap { i in
             guard let id = ids.atIndex(i)?.stringValue else { return nil }
-            return ChromeWindow(id: id, name: names.atIndex(i)?.stringValue ?? "")
+            let mode = result.atIndex(3)?.atIndex(i)?.stringValue
+            return ChromeWindow(id: id, name: names.atIndex(i)?.stringValue ?? "", incognito: mode == "incognito")
         }
     }
 

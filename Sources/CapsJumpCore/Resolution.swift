@@ -9,6 +9,9 @@ public struct Target: Sendable, Equatable {
     /// Other profiles whose windows carry the same label. While any exist, no window can be
     /// told apart from theirs, so the site is always opened rather than focused.
     public let sharedLabelWith: [ChromeProfile]
+    /// Whether it is the only profile. Chrome then leaves the label off its titles, so
+    /// every window is this profile's.
+    public let onlyProfile: Bool
 
     public var label: String { profile.windowLabel }
     public var canFocus: Bool { sharedLabelWith.isEmpty }
@@ -52,6 +55,9 @@ public enum Resolver {
                 throw .account(error)
             }
         }
-        return Target(site: site, profile: profile, sharedLabelWith: catalog.sharingLabel(with: profile))
+        return Target(
+            site: site, profile: profile, sharedLabelWith: catalog.sharingLabel(with: profile),
+            onlyProfile: catalog.profiles.count == 1
+        )
     }
 }

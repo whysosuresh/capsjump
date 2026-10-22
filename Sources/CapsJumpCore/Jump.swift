@@ -67,7 +67,10 @@ public enum Jump {
         guard target.canFocus else { return open(.sharedLabel) }
 
         let pairing = WindowPairing.pair(chrome: windows, titles: titles)
-        let ours = WindowPairing.windows(labelled: target.label, chrome: windows, titles: titles, pairing: pairing)
+        let ours = (target.onlyProfile
+            ? windows.compactMap { window in pairing[window.id].map { (window: window, title: $0) } }
+            : WindowPairing.windows(labelled: target.label, chrome: windows, titles: titles, pairing: pairing)
+        ).filter { !$0.window.incognito }
         var read: [WindowTabs] = []
         for (window, _) in ours {
             read.append(try tabs(window.id))

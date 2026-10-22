@@ -86,7 +86,8 @@ private func target(shared: Bool) -> Target {
     Target(
         site: Site(name: "demo", account: nil, profile: "Profile 31", open: URL(string: "https://example.com/demo")!, match: ["example.com/demo"]),
         profile: profile,
-        sharedLabelWith: shared ? [ChromeProfile(directory: "Profile 32", name: "Demo Personal", email: "", givenName: "")] : []
+        sharedLabelWith: shared ? [ChromeProfile(directory: "Profile 32", name: "Demo Personal", email: "", givenName: "")] : [],
+            onlyProfile: false
     )
 }
 

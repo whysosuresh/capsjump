@@ -1,6 +1,7 @@
 // Window pairing and the jump decision, on the window lists measured on a real Mac:
 // Chrome shortens names with "…", two profiles show the same page, and a window
-// Accessibility can't see must cost only its own pairing.
+// Accessibility can't see must cost only its own pairing. With one profile, whose titles
+// carry no label, every window but an incognito one is the profile's.
 
 import Foundation
 import Testing
@@ -8,6 +9,10 @@ import Testing
 
 private func title(_ page: String, _ label: String) -> String {
     "\(page) - Google Chrome \u{2013} \(label)"
+}
+
+private func window(_ id: String, _ name: String, incognito: Bool = false) -> ChromeWindow {
+    ChromeWindow(id: id, name: name, incognito: incognito)
 }
 
 private let acme = "Alex (acme.dev)"
@@ -24,11 +29,11 @@ private let lee = "lee@initech.com"
 
     @Test func pairsTheMeasuredFiveWindows() {
         let chrome = [
-            ChromeWindow(id: "1", name: "1Password for Acme"),
-            ChromeWindow(id: "2", name: "Inbox - alex@umbrella.co - Umbrella Mail"),
-            ChromeWindow(id: "3", name: "New chat - Claude"),
-            ChromeWindow(id: "4", name: "New chat - Claude"),
-            ChromeWindow(id: "5", name: "Inbox - alex@globex.io - Globex Mail"),
+            window("1", "1Password for Acme"),
+            window("2", "Inbox - alex@umbrella.co - Umbrella Mail"),
+            window("3", "New chat - Claude"),
+            window("4", "New chat - Claude"),
+            window("5", "Inbox - alex@globex.io - Globex Mail"),
         ]
         let titles = [
             title("1Password for Acme", acme),
@@ -43,7 +48,7 @@ private let lee = "lee@initech.com"
     }
 
     @Test func shortenedNamePairsWithItsWholeTitle() {
-        let chrome = [ChromeWindow(id: "7", name: "Login | 1Password \u{2014} Password M\u{2026}ams, \u{2026}")]
+        let chrome = [window("7", "Login | 1Password \u{2014} Password M\u{2026}ams, \u{2026}")]
         let titles = [title("Login | 1Password \u{2014} Password Manager for Teams, Businesses", acme)]
         #expect(WindowPairing.pair(chrome: chrome, titles: titles) == ["7": 0])
     }
@@ -51,11 +56,11 @@ private let lee = "lee@initech.com"
     @Test func windowMissingFromAccessibilityCostsOnlyItsGroup() {
         // Window 2 is on another Space: Accessibility lists four titles for five windows.
         let chrome = [
-            ChromeWindow(id: "1", name: "GitHub"),
-            ChromeWindow(id: "2", name: "Gmail"),
-            ChromeWindow(id: "3", name: "New chat - Claude"),
-            ChromeWindow(id: "4", name: "New chat - Claude"),
-            ChromeWindow(id: "5", name: "Docs"),
+            window("1", "GitHub"),
+            window("2", "Gmail"),
+            window("3", "New chat - Claude"),
+            window("4", "New chat - Claude"),
+            window("5", "Docs"),
         ]
         let titles = [
             title("GitHub", acme),
@@ -69,16 +74,16 @@ private let lee = "lee@initech.com"
     @Test func identicalWindowsWithOneMissingStayUnpaired() {
         // Two windows on the same page, one invisible: no title can say which is which.
         let chrome = [
-            ChromeWindow(id: "1", name: "New chat - Claude"),
-            ChromeWindow(id: "2", name: "New chat - Claude"),
-            ChromeWindow(id: "3", name: "GitHub"),
+            window("1", "New chat - Claude"),
+            window("2", "New chat - Claude"),
+            window("3", "GitHub"),
         ]
         let titles = [title("New chat - Claude", lee), title("GitHub", acme)]
         #expect(WindowPairing.pair(chrome: chrome, titles: titles) == ["3": 1])
     }
 
     @Test func orderBreaksTiesBetweenIdenticalWindows() {
-        let chrome = [ChromeWindow(id: "10", name: "New Tab"), ChromeWindow(id: "20", name: "New Tab")]
+        let chrome = [window("10", "New Tab"), window("20", "New Tab")]
         let titles = [title("New Tab", lee), title("New Tab", kim)]
         #expect(WindowPairing.pair(chrome: chrome, titles: titles) == ["10": 0, "20": 1])
     }
@@ -86,13 +91,13 @@ private let lee = "lee@initech.com"
     @Test func singleCompletePairingWinsWhenOrderDisagrees() {
         // "New" is compatible with both titles, "New chat - Claude" only with the first;
         // front-to-back order would pair "New" with the chat, leaving the other stranded.
-        let chrome = [ChromeWindow(id: "1", name: "New"), ChromeWindow(id: "2", name: "New chat - Claude")]
+        let chrome = [window("1", "New"), window("2", "New chat - Claude")]
         let titles = [title("New chat - Claude", kim), title("New Tab", lee)]
         #expect(WindowPairing.pair(chrome: chrome, titles: titles) == ["1": 1, "2": 0])
     }
 
     @Test func labelMustBeTheWholeEnding() {
-        let chrome = [ChromeWindow(id: "1", name: "X")]
+        let chrome = [window("1", "X")]
         let titles = [title("X", "Alex (globex.io)")]
         let pairing = WindowPairing.pair(chrome: chrome, titles: titles)
         #expect(WindowPairing.windows(labelled: "globex.io", chrome: chrome, titles: titles, pairing: pairing).isEmpty)
@@ -100,7 +105,7 @@ private let lee = "lee@initech.com"
     }
 
     @Test func namelessWindowPairsWithNothingAndHarmsNoOne() {
-        let chrome = [ChromeWindow(id: "1", name: ""), ChromeWindow(id: "2", name: "GitHub")]
+        let chrome = [window("1", ""), window("2", "GitHub")]
         let titles = [title("Untitled", kim), title("GitHub", acme)]
         #expect(WindowPairing.pair(chrome: chrome, titles: titles) == ["2": 1])
     }
@@ -118,14 +123,15 @@ private let lee = "lee@initech.com"
         Target(
             site: Site(name: "claude-kim", account: kim, profile: nil, open: URL(string: "https://claude.ai/new")!, match: match),
             profile: profile,
-            sharedLabelWith: shared ? [ChromeProfile(directory: "Profile 27", name: kim, email: "", givenName: "")] : []
+            sharedLabelWith: shared ? [ChromeProfile(directory: "Profile 27", name: kim, email: "", givenName: "")] : [],
+            onlyProfile: false
         )
     }
 
     private let chrome = [
-        ChromeWindow(id: "1", name: "GitHub"),
-        ChromeWindow(id: "2", name: "New chat - Claude"),
-        ChromeWindow(id: "3", name: "Docs"),
+        window("1", "GitHub"),
+        window("2", "New chat - Claude"),
+        window("3", "Docs"),
     ]
     private let titles = [
         title("GitHub", kim),
@@ -178,6 +184,19 @@ private let lee = "lee@initech.com"
             == .open(profileDirectory: "Profile 26", url: URL(string: "https://claude.ai/new")!, reason: .chromeNotRunning))
         #expect(try Jump.decide(target: target(shared: true), chromeRunning: true, windows: chrome, titles: titles, tabs: none)
             == .open(profileDirectory: "Profile 26", url: URL(string: "https://claude.ai/new")!, reason: .sharedLabel))
+    }
+
+    @Test func theOnlyProfileOwnsEveryWindowButAnIncognitoOne() throws {
+        // With one profile Chrome leaves the label off: "<page> - Google Chrome".
+        let only = Target(site: target().site, profile: profile, sharedLabelWith: [], onlyProfile: true)
+        let windows = [window("1", "New chat - Claude", incognito: true), window("2", "New chat - Claude")]
+        let titles = ["New chat - Claude - Google Chrome (Incognito)", "New chat - Claude - Google Chrome"]
+        let normal = tabs(["2": WindowTabs(windowID: "2", urls: ["https://claude.ai/chat/1"], activeIndex: 1)])
+        #expect(try Jump.decide(target: only, chromeRunning: true, windows: windows, titles: titles, tabs: normal)
+            == .focus(windowID: "2", tabIndex: 1, titleIndex: 1))
+        // An incognito window is never read, so with only that one the site opens.
+        #expect(try Jump.decide(target: only, chromeRunning: true, windows: [windows[0]], titles: [titles[0]], tabs: tabs([:]))
+            == .open(profileDirectory: "Profile 26", url: URL(string: "https://claude.ai/new")!, reason: .noMatchingTab))
     }
 
     @Test func readErrorIsThrownNeverOpened() {

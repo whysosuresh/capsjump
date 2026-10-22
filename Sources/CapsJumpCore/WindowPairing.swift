@@ -21,10 +21,13 @@ import Foundation
 public struct ChromeWindow: Sendable, Equatable {
     public let id: String
     public let name: String
+    /// An incognito window, which belongs to no profile.
+    public let incognito: Bool
 
-    public init(id: String, name: String) {
+    public init(id: String, name: String, incognito: Bool) {
         self.id = id
         self.name = name
+        self.incognito = incognito
     }
 }
 

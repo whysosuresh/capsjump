@@ -82,6 +82,12 @@ func site(_ name: String = "s", account: String? = nil, profile: String? = nil, 
         #expect(throws: ResolveError.self) { try Resolver.resolve(site(account: "globex.io"), in: c) }
     }
 
+    @Test func theOnlyProfileIsMarked() throws {
+        let one = ProfileCatalog(profiles: [ChromeProfile(directory: "Default", name: "Person 1", email: "", givenName: "")])
+        #expect(try Resolver.resolve(site(profile: "Default"), in: one).onlyProfile)
+        #expect(try !Resolver.resolve(site(account: "sam@globex.io"), in: catalog()).onlyProfile)
+    }
+
     @Test func sharedLabelDisablesFocus() throws {
         let c = ProfileCatalog(profiles: [
             ChromeProfile(directory: "A", name: "Work", email: "", givenName: ""),
