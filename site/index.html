@@ -6,9 +6,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>CapsJump</title>
-  <meta name="description" content="Caps Lock finally has a job: one key to the right app, window or tab, in the Chrome profile you choose.">
+  <meta name="description" content="Caps Lock finally has a job: one key to the right app, window or tab, in the Chrome or Brave profile you choose.">
   <meta property="og:title" content="CapsJump: Caps Lock finally has a job">
-  <meta property="og:description" content="Caps Lock finally has a job: one key to the right app, window or tab, in the Chrome profile you choose.">
+  <meta property="og:description" content="Caps Lock finally has a job: one key to the right app, window or tab, in the Chrome or Brave profile you choose.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://capsjump.com/">
   <meta property="og:image" content="https://capsjump.com/card.png">
@@ -63,8 +63,8 @@
 
     <section class="panels">
       <article>
-        <h2>Chrome profiles</h2>
-        <p>Give GitHub a key in your work Chrome profile. CapsJump brings a matching tab forward when it can find one. If no tab matches, it opens the page in that profile.</p>
+        <h2>Chrome and Brave profiles</h2>
+        <p>Give GitHub a key in your work Chrome or Brave profile. CapsJump brings a matching tab forward when it can find one. If no tab matches, it opens the page in that profile.</p>
       </article>
       <article>
         <h2>Apps</h2>
@@ -136,7 +136,7 @@ keys:
 
     <section class="agent">
       <h2>Or ask your coding agent</h2>
-      <p>Tell Claude Code, Codex, Cursor or another coding agent what you want, in your own words. With CapsJump's skill, it installs CapsJump if you don't have it yet, looks up your Chrome profiles instead of guessing an email, keeps your other keys, and has CapsJump check the file until it's clean. Then it tells you each new key in a line. Granting macOS permissions stays with you.</p>
+      <p>Tell Claude Code, Codex, Cursor or another coding agent what you want, in your own words. With CapsJump's skill, it installs CapsJump if you don't have it yet, looks up your Chrome and Brave profiles instead of guessing an email, keeps your other keys, and has CapsJump check the file until it's clean. Then it tells you each new key in a line. Granting macOS permissions stays with you.</p>
       <div class="install-line">
         <code id="skill">npx skills add whysosuresh/capsjump</code>
         <button type="button" class="copy" data-copy="skill" aria-label="Copy the command that installs CapsJump's skill">Copy</button>
@@ -156,7 +156,7 @@ keys:
 <pre><code>brew install --cask whysosuresh/tap/capsjump
 open -a CapsJump</code></pre>
       <p>Open source. CapsJump has no analytics. Quit CapsJump and Caps Lock works normally again.</p>
-      <p>Accessibility lets CapsJump handle your shortcuts and move windows. Chrome access lets it find and switch tabs. Configuration and saved icons are read locally; websites and apps you open make their own connections.</p>
+      <p>Accessibility lets CapsJump handle your shortcuts and move windows. Access to Chrome or Brave lets it find and switch tabs. Configuration and saved icons are read locally; websites and apps you open make their own connections.</p>
       <h3>Set up your keys</h3>
       <p>Both routes open the same Welcome window, with three steps that tick themselves as you go:</p>
       <ol>
@@ -168,8 +168,8 @@ open -a CapsJump</code></pre>
       <h3 id="chrome-shortcut">Give GitHub a key</h3>
       <p>G is an example you configure; the starter keys move windows.</p>
       <ol>
-        <li>In the Welcome window, choose <strong>Allow…</strong> under <strong>Chrome accounts</strong>. If access was previously denied, choose <strong>Open Automation Settings</strong> instead.</li>
-        <li>Open GitHub in the Chrome profile you want, then choose <strong>Add Current Tab…</strong> from CapsJump's menu.</li>
+        <li>In the Welcome window, choose <strong>Allow…</strong> under <strong>Chrome accounts</strong>. If access was previously denied, choose <strong>Open Automation Settings</strong> instead. For Brave, macOS asks the first time CapsJump reads one of its tabs.</li>
+        <li>Open GitHub in the Chrome or Brave profile you want, then choose <strong>Add Current Tab…</strong> from CapsJump's menu.</li>
         <li>When the <strong>Account</strong> field is shown, confirm the intended profile; select it if it says <strong>Choose…</strong>. Assign G or another available key, then choose <strong>Add</strong> or <strong>Add Key</strong>.</li>
         <li>Hold Caps Lock and press the key you assigned.</li>
       </ol>
@@ -178,9 +178,9 @@ open -a CapsJump</code></pre>
     <section class="notes">
       <h2>Good to know</h2>
       <ul>
-        <li><strong>Chrome only, for sites.</strong> Site keys work with Google Chrome profiles; app, window and link keys work with other apps.</li>
-        <li><strong>Profiles and open tabs.</strong> CapsJump chooses the Chrome profile, not the account signed in on a website. Tabs on other desktops or in full-screen windows may open again. Profiles with the same window label open a new tab instead of reusing one.</li>
-        <li><strong>Site icons and account pictures come from Chrome.</strong> Each site shows the icon Chrome has already saved on your Mac for that account, and each account the picture Chrome shows for it. Nothing is fetched; a site Chrome hasn't shown there yet keeps a globe.</li>
+        <li><strong>Chrome and Brave, for sites.</strong> Site keys work with Google Chrome and Brave profiles; app, window and link keys work with any app. A site's account picks its browser: a name only Brave has lands in Brave; an email, or a name both browsers have, lands in Chrome. So if you use both, give your profiles different names.</li>
+        <li><strong>Profiles and open tabs.</strong> CapsJump chooses the browser profile, not the account signed in on a website. Tabs on other desktops or in full-screen windows may open again. Profiles with the same window label open a new tab instead of reusing one.</li>
+        <li><strong>Site icons and account pictures come from your browser.</strong> Each site shows the icon its browser has already saved on your Mac for that account, and each account the picture the browser shows for it. Nothing is fetched; a site the browser hasn't shown there yet keeps a globe.</li>
         <li><strong>Windows stay on their screen.</strong> A window snaps within the screen it is on; moving it to another screen isn't a key yet.</li>
         <li><strong>Not while typing a password.</strong> macOS keeps every app's shortcuts out of password fields; the keys work again as soon as you leave one.</li>
         <li><strong>Miss SHOUTING?</strong> Hold Shift, like everyone else. Or pause or quit CapsJump from its icon in the menu bar, and Caps Lock goes back to its old job at once.</li>

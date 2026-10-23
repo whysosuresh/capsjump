@@ -19,7 +19,7 @@ CapsJump talks to apps, browsers and macOS permissions, and a lot of that can't 
 
 ## Browsers
 
-Today, sites land in Google Chrome. Other browsers come in one at a time, each in its own PR, from someone who uses that browser and has run it. Every browser has its own window titles, profile list and quirks, so "it should work the same" isn't enough.
+Today, sites land in Google Chrome or Brave. Other browsers come in one at a time, each in its own PR, from someone who uses that browser and has run it. Every browser has its own window titles, profile list and quirks, so "it should work the same" isn't enough.
 
 ## Build and test
 

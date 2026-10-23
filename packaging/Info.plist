@@ -40,7 +40,7 @@
 	<key>LSUIElement</key>
 	<true/>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>CapsJump reads Chrome's tabs to bring forward the one a link names.</string>
+	<string>CapsJump reads the browser's tabs to bring forward the one a key or link names.</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
 </dict>

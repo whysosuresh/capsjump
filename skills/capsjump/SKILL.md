@@ -1,12 +1,12 @@
 ---
 name: capsjump
-description: Sets up, changes, lists or explains CapsJump's Caps Lock shortcuts on a Mac, kept in ~/.capsjump.yaml. Caps Lock plus a key brings an app forward, lands on a site's tab in the right Chrome account, snaps the front window, or opens a link. Use when someone asks for a Caps Lock key or shortcut, mentions CapsJump, or wants ~/.capsjump.yaml read or edited.
+description: Sets up, changes, lists or explains CapsJump's Caps Lock shortcuts on a Mac, kept in ~/.capsjump.yaml. Caps Lock plus a key brings an app forward, lands on a site's tab in the right Chrome or Brave account, snaps the front window, or opens a link. Use when someone asks for a Caps Lock key or shortcut, mentions CapsJump, or wants ~/.capsjump.yaml read or edited.
 allowed-tools: Bash(capsjump version) Bash(capsjump profiles *) Bash(capsjump check *)
 ---
 
 # CapsJump
 
-CapsJump turns Caps Lock into a shortcut key on a Mac. One file, `~/.capsjump.yaml`, says which key does what, and CapsJump applies it the moment the file is saved. You edit that file. CapsJump's own commands tell you which Chrome accounts exist, check your edit, and lay the file out the way CapsJump writes it. Its Edit Config… window edits the same file, so the person can always carry on there.
+CapsJump turns Caps Lock into a shortcut key on a Mac. One file, `~/.capsjump.yaml`, says which key does what, and CapsJump applies it the moment the file is saved. You edit that file. CapsJump's own commands tell you which Chrome and Brave accounts exist, check your edit, and lay the file out the way CapsJump writes it. Its Edit Config… window edits the same file, so the person can always carry on there.
 
 Work through these steps in order.
 
@@ -63,7 +63,7 @@ Run `capsjump check --json` again. Fix every `problem` in `file` and check again
 
 Say what changed, one line per key added or changed, for example: "Caps Lock + G: your pull requests on GitHub, in alex@acme.dev's Chrome".
 
-Then pass on each `problem` and `note` in `app`, in plain words, with what the person does. Its text already says what to do: open CapsJump, grant Accessibility in System Settings, resume paused keys. Only the person can grant macOS permissions; never claim to have done it. The first time a site key runs, macOS also asks to let CapsJump control Chrome.
+Then pass on each `problem` and `note` in `app`, in plain words, with what the person does. Its text already says what to do: open CapsJump, grant Accessibility in System Settings, resume paused keys. Only the person can grant macOS permissions; never claim to have done it. The first time a site key runs, macOS also asks to let CapsJump control Chrome, or Brave for a Brave site.
 
 The keys work as soon as the file is saved; nothing needs restarting.
 
