@@ -31,7 +31,7 @@ struct SiteList: View {
             .overlay {
                 if lines.isEmpty {
                     if model.query.isEmpty {
-                        EmptyNote(title: "No sites yet", text: "The quickest way to make one: open the page in Chrome, then Add Current Tab… in the menu bar.", button: "Add Site") { model.addSite() }
+                        EmptyNote(title: "No sites yet", text: "The quickest way to make one: open the page in Chrome or Brave, then Add Current Tab… in the menu bar.", button: "Add Site") { model.addSite() }
                     } else {
                         EmptyNote(title: "No sites match “\(model.query)”", text: "Search looks at the name, the account, the page and the keys.")
                     }

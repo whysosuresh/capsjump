@@ -174,7 +174,7 @@ A `site` key, or the link `capsjump://<name>`, runs a jump:
 
 Sites land in Google Chrome or Brave. A site's account picks its browser: a name only Brave has lands in Brave; an email, or a name both browsers have, lands in Chrome. So if you use both, give your profiles different names. `capsjump check` and the Edit Config… window say when a name is in both.
 
-Chrome's scripting interface doesn't say which profile a window belongs to, but its window title does (it ends in `– <profile label>`; Brave's can end in `- <profile label>`), and macOS Accessibility reads that title. With only one profile there is no label, and every window but an incognito one is that profile's. CapsJump pairs each browser window with its title, so a window's profile is known without guessing. Accessibility lists only the windows on the current Space, so CapsJump sees only those: from a full-screen window or another desktop, a site whose tab is in a window elsewhere gets a new tab instead of being focused. Keep the browser's windows on one desktop and out of full screen for jumps to find them. If two profiles carry the same label, their windows can't be told apart, so their sites always open a new tab; `capsjump check` says when that applies.
+The browser's scripting interface (Chrome's, which Brave shares) doesn't say which profile a window belongs to, but its window title does (it ends in `– <profile label>`; Brave's can end in `- <profile label>`), and macOS Accessibility reads that title. With only one profile there is no label, and every window but an incognito one is that profile's. CapsJump pairs each browser window with its title, so a window's profile is known without guessing. Accessibility lists only the windows on the current Space, so CapsJump sees only those: from a full-screen window or another desktop, a site whose tab is in a window elsewhere gets a new tab instead of being focused. Keep the browser's windows on one desktop and out of full screen for jumps to find them. If two profiles carry the same label, their windows can't be told apart, so their sites always open a new tab; `capsjump check` says when that applies.
 
 If a permission is missing, the jump fails with a notification. So does a jump whose window doesn't come to the front within half a second; the notification names the app that stayed in front. It never opens a duplicate tab instead, and never tries again by itself.
 
@@ -190,14 +190,14 @@ If Chrome access or notifications were previously denied, the Welcome window off
 
 Releases are signed with a Developer ID and notarized, so macOS keeps these grants across upgrades.
 
-Site icons need no permission: the config window shows the icon Chrome has already saved on this Mac for each site, in the account the site jumps into, and each account's picture, from the same folder; it fetches nothing. A site Chrome hasn't shown in that account yet keeps a globe until it has, and an account without a Google picture shows Chrome's own outline in that profile's colours.
+Site icons need no permission: the config window shows the icon the browser has already saved on this Mac for each site, in the account the site jumps into, and each account's picture, from the same folder; it fetches nothing. A site the browser hasn't shown in that account yet keeps a globe until it has, and an account without a Google picture shows the browser's own outline in that profile's colours.
 
 ## Commands
 
 | Command | |
 | --- | --- |
 | `capsjump init` | Write a starter `~/.capsjump.yaml`. Never overwrites. |
-| `capsjump profiles [--json]` | List Chrome's profiles: folder, account, name and window label. `--json` adds the folders sharing each label and the fields a site in each profile writes. |
+| `capsjump profiles [--json]` | List Chrome's profiles, then Brave's: browser, folder, account, name and window label. `--json` adds the folders sharing each label and the fields a site in each profile writes. |
 | `capsjump check [--json]` | Validate the file, resolve every site and key, and confirm CapsJump.app is running with Caps Lock mapped. Exits non-zero on a problem. `--json` gives the file it read (symlinks followed) and its findings about the file apart from those about the app. |
 | `capsjump tidy` | Rewrite `~/.capsjump.yaml` in the layout CapsJump writes, as Edit Config… saves it. Comments don't survive; a file with problems is left as it is. |
 | `capsjump jump <site>` | Jump, exactly as the link does. |
@@ -224,8 +224,8 @@ A local build is signed ad hoc, and macOS ties its permissions to that exact bui
 
 Layout:
 
-- `Sources/CapsJumpCore`: all the rules (reading, checking and writing the config, key names, what each key event does, window frames, Chrome profiles, links, window pairing, choosing a tab), with no system calls. Nearly every test is here.
-- `Sources/CapsJumpChrome`: the live side of a jump: Apple Events to Chrome, Accessibility, launching Chrome, permissions.
+- `Sources/CapsJumpCore`: all the rules (reading, checking and writing the config, key names, what each key event does, window frames, browser profiles, links, window pairing, choosing a tab), with no system calls. Nearly every test is here.
+- `Sources/CapsJumpChrome`: the live side of a jump: Apple Events to Chrome or Brave, Accessibility, launching the browser, permissions.
 - `Sources/CapsJumpSystem`: the live side of the keys: the Caps Lock mapping, the event tap, watching and saving the config, moving windows, opening apps and links. Saving has its own tests, on a real disk, because its bugs would lose your file.
 - `Sources/CapsJumpApp`: the background app that runs the keys and receives `capsjump://` links.
 - `Sources/capsjump`: the CLI.

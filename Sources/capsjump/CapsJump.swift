@@ -17,7 +17,7 @@ import CapsJumpSystem
 struct CapsJump: ParsableCommand {
     static let configuration = CommandConfiguration(
         commandName: "capsjump",
-        abstract: "Shortcuts built around Caps Lock: apps, Chrome sites in the right account, windows and links.",
+        abstract: "Shortcuts built around Caps Lock: apps, sites in the right Chrome or Brave account, windows and links.",
         discussion: "Keys and sites live in ~/.capsjump.yaml. Hold Caps Lock and press a key; each site is also the link capsjump://<name>.",
         version: Version.current,
         subcommands: [Init.self, Profiles.self, Check.self, Tidy.self, Jump.self, Setup.self, PauseCommand.self, ResumeCommand.self, QuitCommand.self, Logs.self, VersionCommand.self]

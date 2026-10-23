@@ -211,7 +211,7 @@ struct WelcomeView: View {
                 .accessibilityHidden(true)
             VStack(alignment: .leading, spacing: 4) {
                 Text("Welcome to CapsJump").font(.title2.weight(.semibold))
-                Text("Hold Caps Lock and press a key to bring an app forward, land on a site in the right Chrome account, or snap a window.")
+                Text("Hold Caps Lock and press a key to bring an app forward, land on a site in the right Chrome or Brave account, or snap a window.")
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -308,7 +308,7 @@ struct WelcomeView: View {
     private var chromeRow: some View {
         OptionRow(
             title: "Chrome accounts",
-            why: "So a key can land on a site in the right Chrome account.",
+            why: "So a key can land on a site in the right Chrome account. Brave, if you use it, asks the first time.",
             done: model.chrome == .granted
         ) {
             switch model.chrome {

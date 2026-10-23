@@ -25,7 +25,7 @@ public enum ChromeFavicons {
             switch self {
             case .noFile: "the profile has no Favicons file"
             case let .unreadable(reason): "Favicons could not be read: \(reason)"
-            case .noIcon: "Chrome has no icon for the site's pages"
+            case .noIcon: "the browser has no icon for the site's pages"
             case .notAnImage: "the stored icon is not a PNG"
             }
         }
