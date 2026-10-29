@@ -12,7 +12,8 @@
 // CapsJump's own window can ask for the keys pressed with Caps Lock instead of their
 // actions, and the Welcome window for its window keys and unbound ones only; that ends
 // whenever CapsJump stops being the active app, so nothing left listening can keep the
-// keys from working elsewhere.
+// keys from working elsewhere. Caps Lock pressed with Shift switches its lock and logs
+// which way it went.
 
 import CapsJumpChrome
 import CapsJumpCore
@@ -24,7 +25,7 @@ import os
 
 @MainActor
 final class Keys {
-    private let logger = Logger(subsystem: Identity.bundleID, category: "keys")
+    private let logger: Logger
     private let notifier: Notifier
     private let layer: KeyLayer
     private var watcher: ConfigWatcher?
@@ -37,8 +38,10 @@ final class Keys {
     var onChange: (@MainActor () -> Void)?
 
     init(notifier: Notifier, onAction: @escaping @MainActor (KeyAction) -> Void) {
+        let logger = Logger(subsystem: Identity.bundleID, category: "keys")
+        self.logger = logger
         self.notifier = notifier
-        layer = KeyLayer(onAction: onAction)
+        layer = KeyLayer(onAction: onAction) { Self.toggleCapsLock(logger) }
         NotificationCenter.default.addObserver(forName: NSApplication.didResignActiveNotification, object: nil, queue: .main) { [weak self] _ in
             MainActor.assumeIsolated { self?.layer.stopListening() }
         }
@@ -89,6 +92,16 @@ final class Keys {
         Pause.isOn = false
         logger.notice("keys resumed")
         apply()
+    }
+
+    /// Switches the Caps Lock lock after Shift + Caps Lock, and says which way. Static,
+    /// since the layer that calls it is made before `self` is.
+    private static func toggleCapsLock(_ logger: Logger) {
+        switch KeyMapping.toggleLock() {
+        case true?: logger.notice("caps lock on (Shift + Caps Lock)")
+        case false?: logger.notice("caps lock off (Shift + Caps Lock)")
+        case nil: logger.error("the system refused to switch the Caps Lock lock")
+        }
     }
 
     /// Gives Caps Lock back and stops the tap.

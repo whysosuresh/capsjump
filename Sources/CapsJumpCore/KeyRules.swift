@@ -9,7 +9,8 @@
 // instead of run, with what it is bound to, so the listener gets the key and nothing
 // jumps. A key field hears every key; the Welcome window hears only a key that would move
 // a window or does nothing, and every other key runs. One listener at a time: the last to
-// ask, and only it can stop.
+// ask, and only it can stop. Caps Lock pressed with Shift, swallowed like any press of it,
+// also switches the Caps Lock lock; `capsLock(_:)` has the rule.
 
 import Foundation
 
@@ -25,12 +26,15 @@ public struct KeyEvent: Sendable, Equatable {
     public let isRepeat: Bool
     /// Whether the system reports Caps Lock (as F18) down as this event arrives.
     public let capsHeld: Bool
+    /// Whether Shift is held as this event arrives.
+    public let shiftHeld: Bool
 
-    public init(_ trigger: KeyTrigger, _ phase: Phase, isRepeat: Bool = false, capsHeld: Bool) {
+    public init(_ trigger: KeyTrigger, _ phase: Phase, isRepeat: Bool = false, capsHeld: Bool, shiftHeld: Bool) {
         self.trigger = trigger
         self.phase = phase
         self.isRepeat = isRepeat
         self.capsHeld = capsHeld
+        self.shiftHeld = shiftHeld
     }
 }
 
@@ -41,6 +45,8 @@ public enum KeyDecision: Sendable, Equatable {
     /// Swallowed and handed to the listener with what the key is bound to, if anything;
     /// nothing runs.
     case heard(KeyTrigger, KeyAction?)
+    /// Swallowed, and the Caps Lock lock switches: Caps Lock was pressed with Shift.
+    case toggleCapsLock
 }
 
 public struct KeyRules: Sendable {
@@ -77,6 +83,9 @@ public struct KeyRules: Sendable {
     public private(set) var swallowed: Set<KeyTrigger> = []
     /// The window or key field listening, if any.
     public private(set) var listener: Listener?
+    /// Caps Lock went down with Shift held and no key was pressed since, so letting it go
+    /// switches the lock.
+    private var switchesLock = false
 
     public var isListening: Bool { listener != nil }
 
@@ -110,7 +119,8 @@ public struct KeyRules: Sendable {
     public mutating func decide(_ event: KeyEvent) -> KeyDecision {
         // No keys bound means Caps Lock isn't taken: a real F18 and everything else pass.
         if bindings.isEmpty && swallowed.isEmpty { return .pass }
-        if event.trigger == .key(CapsLock.keyCode) { return .swallow }
+        if event.trigger == .key(CapsLock.keyCode) { return capsLock(event) }
+        if event.phase == .down { switchesLock = false }
 
         switch event.phase {
         case .up:
@@ -129,6 +139,20 @@ public struct KeyRules: Sendable {
             if let listener, listener.hearing.hears(action) { return .heard(event.trigger, action) }
             guard let action else { return .swallow }
             return .run(action)
+        }
+    }
+
+    /// Caps Lock itself is always swallowed. Pressed with Shift held and let go with no key
+    /// pressed in between, it switches the lock as it is let go, so Shift + Caps Lock + a key
+    /// is only the key. Shift is read as Caps Lock goes down: people often let go of it first.
+    private mutating func capsLock(_ event: KeyEvent) -> KeyDecision {
+        switch event.phase {
+        case .down:
+            if !event.isRepeat { switchesLock = event.shiftHeld }
+            return .swallow
+        case .up:
+            defer { switchesLock = false }
+            return switchesLock ? .toggleCapsLock : .swallow
         }
     }
 }

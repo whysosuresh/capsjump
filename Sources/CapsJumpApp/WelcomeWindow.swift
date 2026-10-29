@@ -7,7 +7,7 @@
 // it already shows on. Chrome and notifications are asked when their buttons are pressed, never
 // before. Each row reads its state again every second while the window is open, so a
 // switch flipped in System Settings shows here at once. Nothing takes Caps Lock until the person turns keys
-// on, next to the line that says Caps Lock stops typing capitals. While the window itself
+// on, next to the line that says how to type capitals then. While the window itself
 // is in front, a window key pressed with Caps Lock is heard rather than run (it would try
 // to move this fixed-size window), and so is a key with nothing bound, and the step says
 // which; every other key runs, and the first key that runs, here or elsewhere, ticks it. The button of the step at hand is the prominent one, but no step's
@@ -275,7 +275,7 @@ struct WelcomeView: View {
                 Text(problem).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
             }
             if !model.keysChosen {
-                Text("While CapsJump has keys, Caps Lock no longer types capitals. Hold Shift for capitals; pause any time from the menu bar.")
+                Text("While CapsJump has keys, Caps Lock held with a key is a shortcut. Press Shift + Caps Lock for capitals, and again to stop; pause any time from the menu bar.")
                     .font(.callout)
                     .foregroundStyle(.secondary)
                     .fixedSize(horizontal: false, vertical: true)

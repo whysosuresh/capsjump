@@ -3,8 +3,9 @@
 // repeats, and nothing is touched when no key is bound. While a key field listens, a key
 // pressed with Caps Lock is heard instead of run, with what it is bound to, swallowed all
 // the same, and only the field listening can stop it; while the Welcome window listens,
-// only a window key or an unbound one is heard, and every other key runs. Then where each
-// window move puts the window.
+// only a window key or an unbound one is heard, and every other key runs. Caps Lock pressed
+// with Shift held switches its lock as it is let go, and Caps Lock alone, Shift after Caps
+// Lock and a press used with a key don't. Then where each window move puts the window.
 
 import Foundation
 import Testing
@@ -38,65 +39,65 @@ import Testing
 
     @Test func capsLockItselfIsAlwaysSwallowed() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(caps, .down, isRepeat: true, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .down, isRepeat: true, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: false)) == .swallow)
     }
 
     @Test func aBoundKeyRunsOnceAndIsSwallowed() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
-        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true, shiftHeld: false)) == .swallow)
         #expect(rules.swallowed.isEmpty)
     }
 
     @Test func theTopRowRunsItsBinding() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: true)) == .run(window))
-        #expect(rules.decide(KeyEvent(volumeUp, .up, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(.key(111), .down, capsHeld: true)) == .run(window))
+        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: true, shiftHeld: false)) == .run(window))
+        #expect(rules.decide(KeyEvent(volumeUp, .up, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(.key(111), .down, capsHeld: true, shiftHeld: false)) == .run(window))
     }
 
     @Test func anUnboundKeyDoesNothingWhileCapsLockIsHeld() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(x, .up, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(.media(7), .down, capsHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(x, .up, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(.media(7), .down, capsHeld: true, shiftHeld: false)) == .swallow)
     }
 
     @Test func withoutCapsLockEverythingPasses() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false)) == .pass)
-        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: false)) == .pass)
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false)) == .pass)
-        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false, shiftHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: false, shiftHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false, shiftHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: false, shiftHeld: false)) == .pass)
     }
 
     @Test func capsLockLetGoFirstStillSwallowsTheKeyUpAndRepeats() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
-        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: false)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .run(site))
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: false, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false, shiftHeld: false)) == .pass)
     }
 
     /// A key-up missed (a password field held secure input) can't keep the key swallowed.
     @Test func aMissedKeyUpCannotStickAKey() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false)) == .pass)
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false, shiftHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false, shiftHeld: false)) == .pass)
         #expect(rules.swallowed.isEmpty)
     }
 
     @Test func noBindingsTouchNothing() {
         var rules = KeyRules()
-        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true)) == .pass)
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .pass)
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false, shiftHeld: false)) == .pass)
     }
 
     @Test func theArrowsRunTheirMoves() throws {
@@ -108,12 +109,12 @@ import Testing
         var rules = KeyRules(bindings: KeyRules.bindings(for: config))
         let up = KeyTrigger.key(0x7E)
         let down = KeyTrigger.key(0x7D)
-        #expect(rules.decide(KeyEvent(up, .down, capsHeld: true)) == .run(.window(.topHalf)))
-        #expect(rules.decide(KeyEvent(up, .down, isRepeat: true, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(up, .up, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(down, .down, capsHeld: true)) == .run(.window(.bottomHalf)))
-        #expect(rules.decide(KeyEvent(down, .up, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(up, .down, capsHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(up, .down, capsHeld: true, shiftHeld: false)) == .run(.window(.topHalf)))
+        #expect(rules.decide(KeyEvent(up, .down, isRepeat: true, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(up, .up, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(down, .down, capsHeld: true, shiftHeld: false)) == .run(.window(.bottomHalf)))
+        #expect(rules.decide(KeyEvent(down, .up, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(up, .down, capsHeld: false, shiftHeld: false)) == .pass)
     }
 
     private final class Field {}
@@ -124,21 +125,21 @@ import Testing
         rules.listen(ObjectIdentifier(field), hearing: .every)
         #expect(rules.isListening)
         // Bound or not, the key is heard and nothing runs.
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .heard(g, site))
-        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true)) == .heard(x, nil))
-        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: true)) == .heard(volumeUp, window))
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .heard(g, site))
+        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true, shiftHeld: false)) == .heard(x, nil))
+        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: true, shiftHeld: false)) == .heard(volumeUp, window))
         // Its repeats and key-up are swallowed as a run key's are.
-        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(x, .up, capsHeld: false)) == .swallow)
-        #expect(rules.decide(KeyEvent(volumeUp, .up, capsHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, isRepeat: true, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(x, .up, capsHeld: false, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(volumeUp, .up, capsHeld: true, shiftHeld: false)) == .swallow)
         #expect(rules.swallowed.isEmpty)
         // Caps Lock itself, and keys without it, are as before.
-        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false)) == .pass)
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: false, shiftHeld: false)) == .pass)
         rules.stopListening(ObjectIdentifier(field))
         #expect(!rules.isListening)
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .run(site))
     }
 
     @Test func onlyTheFieldListeningCanStop() throws {
@@ -150,12 +151,12 @@ import Testing
         // The first field was replaced; its stop is late and changes nothing.
         rules.stopListening(ObjectIdentifier(first))
         #expect(rules.listener?.owner == ObjectIdentifier(second))
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .heard(g, site))
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .heard(g, site))
         // Stopping with no owner ends whoever listens.
         rules.stopListening()
         #expect(!rules.isListening)
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .run(site))
     }
 
     @Test func theWelcomeWindowHearsOnlyWindowAndUnboundKeys() throws {
@@ -164,31 +165,103 @@ import Testing
         let welcome = Field()
         rules.listen(ObjectIdentifier(welcome), hearing: .windowAndUnbound)
         // A site key runs, as it would anywhere.
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true, shiftHeld: false)) == .swallow)
         // A window key would move the listening window, so it is heard, with its action.
-        #expect(rules.decide(KeyEvent(f12, .down, capsHeld: true)) == .heard(f12, window))
-        #expect(rules.decide(KeyEvent(f12, .up, capsHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(f12, .down, capsHeld: true, shiftHeld: false)) == .heard(f12, window))
+        #expect(rules.decide(KeyEvent(f12, .up, capsHeld: true, shiftHeld: false)) == .swallow)
         // A key with nothing bound is heard, so the window can say so.
-        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true)) == .heard(x, nil))
-        #expect(rules.decide(KeyEvent(x, .up, capsHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(x, .down, capsHeld: true, shiftHeld: false)) == .heard(x, nil))
+        #expect(rules.decide(KeyEvent(x, .up, capsHeld: true, shiftHeld: false)) == .swallow)
         #expect(rules.swallowed.isEmpty)
         rules.stopListening(ObjectIdentifier(welcome))
-        #expect(rules.decide(KeyEvent(f12, .down, capsHeld: true)) == .run(window))
+        #expect(rules.decide(KeyEvent(f12, .down, capsHeld: true, shiftHeld: false)) == .run(window))
     }
 
     @Test func withNoKeysBoundAListeningFieldGetsTheKeyFromItsWindow() {
         var rules = KeyRules()
         rules.listen(ObjectIdentifier(Field()), hearing: .every)
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .pass)
     }
 
     @Test func aPressHeldAcrossAReloadThatDropsEveryKeyStillEndsSwallowed() throws {
         var rules = try rules()
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .run(site))
         rules.bindings = [:]
-        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false)) == .swallow)
-        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true)) == .pass)
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: false, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: false)) == .pass)
+    }
+
+    /// Caps Lock pressed with Shift held or not, then let go: what its key-up decides.
+    private func press(_ rules: inout KeyRules, shift: Bool) -> KeyDecision {
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: shift)) == .swallow)
+        return rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: shift))
+    }
+
+    @Test func shiftWithCapsLockSwitchesTheLockEachTime() throws {
+        var rules = try rules()
+        #expect(press(&rules, shift: true) == .toggleCapsLock)
+        #expect(press(&rules, shift: true) == .toggleCapsLock)
+        #expect(press(&rules, shift: false) == .swallow)
+    }
+
+    /// People often let go of Shift before Caps Lock; Shift counts when Caps Lock goes down.
+    @Test func shiftLetGoBeforeCapsLockStillSwitches() throws {
+        var rules = try rules()
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: false)) == .toggleCapsLock)
+    }
+
+    /// Caps Lock held, then Shift, may be the start of a shortcut: nothing switches.
+    @Test func shiftPressedAfterCapsLockDoesNothing() throws {
+        var rules = try rules()
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: false)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: true)) == .swallow)
+    }
+
+    @Test func shiftAndCapsLockWithAKeyRunOnlyTheKey() throws {
+        var rules = try rules()
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(g, .down, capsHeld: true, shiftHeld: true)) == .run(site))
+        #expect(rules.decide(KeyEvent(g, .up, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: true)) == .swallow)
+        // A top-row key counts as a key too.
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(volumeUp, .down, capsHeld: true, shiftHeld: true)) == .run(window))
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(volumeUp, .up, capsHeld: false, shiftHeld: true)) == .swallow)
+    }
+
+    @Test func capsLockRepeatsSwitchTheLockOnce() throws {
+        var rules = try rules()
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .down, isRepeat: true, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .down, isRepeat: true, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: true)) == .toggleCapsLock)
+    }
+
+    /// A press whose key-up was missed (the tap was switched off a moment) is dropped, and
+    /// the next press decides by its own Shift; a key-up whose key-down was missed switches
+    /// nothing.
+    @Test func aMissedCapsLockKeyUpOrKeyDownSwitchesNothing() throws {
+        var rules = try rules()
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: true)) == .swallow)
+        #expect(press(&rules, shift: false) == .swallow)
+        #expect(press(&rules, shift: true) == .toggleCapsLock)
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: true)) == .swallow)
+    }
+
+    @Test func shiftWithCapsLockSwitchesTheLockWhileAFieldListens() throws {
+        var rules = try rules()
+        rules.listen(ObjectIdentifier(Field()), hearing: .every)
+        #expect(press(&rules, shift: true) == .toggleCapsLock)
+    }
+
+    /// With no keys bound Caps Lock is macOS's own, and its own press switches the lock.
+    @Test func withNoKeysBoundShiftWithCapsLockIsMacOSsOwn() {
+        var rules = KeyRules()
+        #expect(rules.decide(KeyEvent(caps, .down, capsHeld: true, shiftHeld: true)) == .pass)
+        #expect(rules.decide(KeyEvent(caps, .up, capsHeld: false, shiftHeld: true)) == .pass)
     }
 }
 

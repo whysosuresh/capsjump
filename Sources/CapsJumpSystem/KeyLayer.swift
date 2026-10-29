@@ -5,7 +5,8 @@
 // Caps Lock is held is asked of the system on every event. When macOS switches the tap off
 // (a slow callback, or secure input), it is switched straight back on. A key the rules hand
 // to a listener reaches it on the main actor's next turn, with what it is bound to, never
-// inside the callback, so the tap never waits on a view.
+// inside the callback, so the tap never waits on a view. Caps Lock pressed with Shift calls
+// `onCapsLock` inside the callback, since switching the lock is one quick system call.
 
 import AppKit
 import CapsJumpCore
@@ -17,14 +18,16 @@ public final class KeyLayer {
     private var tap: CFMachPort?
     private var source: CFRunLoopSource?
     private let onAction: @MainActor (KeyAction) -> Void
+    private let onCapsLock: @MainActor () -> Void
     private var onHeard: (@MainActor (KeyTrigger, KeyAction?) -> Void)?
 
     /// NX_SYSDEFINED and its media-key subtype.
     private static let systemDefined = CGEventType(rawValue: 14)!
     private static let mediaKeySubtype: Int16 = 8
 
-    public init(onAction: @escaping @MainActor (KeyAction) -> Void) {
+    public init(onAction: @escaping @MainActor (KeyAction) -> Void, onCapsLock: @escaping @MainActor () -> Void) {
         self.onAction = onAction
+        self.onCapsLock = onCapsLock
     }
 
     public var isRunning: Bool { tap != nil }
@@ -103,16 +106,21 @@ public final class KeyLayer {
                 Task { @MainActor in onHeard(trigger, action) }
             }
             return true
+        case .toggleCapsLock:
+            onCapsLock()
+            return true
         }
     }
 
     private static func keyEvent(_ type: CGEventType, _ event: CGEvent) -> KeyEvent? {
         let held = CGEventSource.keyState(.hidSystemState, key: CGKeyCode(CapsLock.keyCode))
+        // Shift as the event carries it, from when the key moved.
+        let shift = event.flags.contains(.maskShift)
         switch type {
         case .keyDown, .keyUp:
             let code = event.getIntegerValueField(.keyboardEventKeycode)
             let isRepeat = event.getIntegerValueField(.keyboardEventAutorepeat) != 0
-            return KeyEvent(.key(code), type == .keyDown ? .down : .up, isRepeat: isRepeat, capsHeld: held)
+            return KeyEvent(.key(code), type == .keyDown ? .down : .up, isRepeat: isRepeat, capsHeld: held, shiftHeld: shift)
         case systemDefined:
             // data1 holds the NX key type in its high 16 bits, then the key state (0xA down,
             // 0xB up) and a repeat bit.
@@ -120,7 +128,7 @@ public final class KeyLayer {
             let data = media.data1
             let state = (data & 0xFF00) >> 8
             guard state == 0xA || state == 0xB else { return nil }
-            return KeyEvent(.media((data & 0xFFFF_0000) >> 16), state == 0xA ? .down : .up, isRepeat: data & 0x1 != 0, capsHeld: held)
+            return KeyEvent(.media((data & 0xFFFF_0000) >> 16), state == 0xA ? .down : .up, isRepeat: data & 0x1 != 0, capsHeld: held, shiftHeld: shift)
         default:
             return nil
         }
